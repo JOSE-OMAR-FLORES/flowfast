@@ -115,15 +115,31 @@ class AdminDashboard extends Component
 
     private function getMonthlyMatches($admin)
     {
-        return GameMatch::whereHas('season.league', function($q) use ($admin) {
-            $q->where('admin_id', $admin->id);
-        })
-        ->selectRaw('MONTH(scheduled_at) as month, COUNT(*) as count')
-        ->whereYear('scheduled_at', now()->year)
-        ->groupBy('month')
-        ->orderBy('month')
-        ->pluck('count', 'month')
-        ->toArray();
+        $driver = config('database.default');
+        
+        if ($driver === 'pgsql') {
+            // PostgreSQL usa EXTRACT
+            return GameMatch::whereHas('season.league', function($q) use ($admin) {
+                $q->where('admin_id', $admin->id);
+            })
+            ->selectRaw('EXTRACT(MONTH FROM scheduled_at) as month, COUNT(*) as count')
+            ->whereRaw('EXTRACT(YEAR FROM scheduled_at) = ?', [now()->year])
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+        } else {
+            // MySQL usa MONTH()
+            return GameMatch::whereHas('season.league', function($q) use ($admin) {
+                $q->where('admin_id', $admin->id);
+            })
+            ->selectRaw('MONTH(scheduled_at) as month, COUNT(*) as count')
+            ->whereYear('scheduled_at', now()->year)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+        }
     }
 
     public function refreshStats()
