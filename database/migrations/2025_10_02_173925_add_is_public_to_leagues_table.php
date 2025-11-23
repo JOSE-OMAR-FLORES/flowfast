@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('leagues', function (Blueprint $table) {
-            $table->boolean('is_public')->default(true)->after('description')->comment('Si la liga es visible públicamente');
+            if (!Schema::hasColumn('leagues', 'is_public')) {
+                $table->boolean('is_public')->default(true)->after('description')->comment('Si la liga es visible públicamente');
+            }
         });
     }
 
