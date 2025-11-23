@@ -1,0 +1,238 @@
+/* Importing Google font - Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+/* Modern Sidebar Styles */
+.modern-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 85px;
+  display: flex;
+  overflow-x: hidden;
+  flex-direction: column;
+  background: #161a2d;
+  padding: 25px 20px;
+  transition: all 0.4s ease;
+  z-index: 40;
+}
+
+.modern-sidebar:hover {
+  width: 260px;
+}
+
+.modern-sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modern-sidebar .sidebar-header img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.modern-sidebar .sidebar-header h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: 23px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-sidebar:hover .sidebar-header h2 {
+  opacity: 1;
+}
+
+.modern-sidebar .sidebar-links h4 {
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 20px 0 10px 0;
+  position: relative;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modern-sidebar .sidebar-links h4 span {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-sidebar:hover .sidebar-links h4 span {
+  opacity: 1;
+}
+
+.modern-sidebar .sidebar-links .menu-separator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: #4f52ba;
+  transform-origin: right;
+  transition: transform 0.3s ease 0.2s;
+}
+
+.modern-sidebar:hover .sidebar-links .menu-separator {
+  transform: scaleX(0);
+  transition-delay: 0s;
+}
+
+.modern-sidebar .sidebar-links {
+  list-style: none;
+  margin-top: 20px;
+  height: 80%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4f52ba #161a2d;
+}
+
+.modern-sidebar .sidebar-links::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modern-sidebar .sidebar-links::-webkit-scrollbar-track {
+  background: #161a2d;
+}
+
+.modern-sidebar .sidebar-links::-webkit-scrollbar-thumb {
+  background: #4f52ba;
+  border-radius: 10px;
+}
+
+.modern-sidebar .sidebar-links li a {
+  display: flex;
+  align-items: center;
+  gap: 0 20px;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 15px 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  position: relative;
+}
+
+.modern-sidebar .sidebar-links li a:hover {
+  color: #161a2d;
+  background: #fff;
+  transform: translateX(5px);
+}
+
+.modern-sidebar .sidebar-links li a.active {
+  color: #161a2d;
+  background: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modern-sidebar .sidebar-links li a .icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modern-sidebar .sidebar-links li a svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.modern-sidebar .user-account {
+  margin-top: auto;
+  padding: 12px 10px;
+  margin-left: -10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.modern-sidebar:hover .user-account {
+  background: #fff;
+}
+
+.modern-sidebar .user-profile {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  transition: color 0.3s ease;
+}
+
+.modern-sidebar:hover .user-profile {
+  color: #161a2d;
+}
+
+.modern-sidebar .user-profile img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  object-fit: cover;
+}
+
+.modern-sidebar .user-profile .user-initial {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.modern-sidebar .user-profile h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modern-sidebar .user-profile span {
+  font-size: 0.775rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.modern-sidebar .user-detail {
+  margin-left: 23px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-sidebar:hover .user-detail {
+  opacity: 1;
+}
+
+/* Ajuste para el contenido principal cuando sidebar está presente */
+.main-content-with-sidebar {
+  margin-left: 85px;
+  transition: margin-left 0.4s ease;
+}
+
+/* Material Icons fallback */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
