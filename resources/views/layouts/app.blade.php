@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Modern Sidebar Styles -->
-    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}" />
+<link rel="stylesheet" href="css/sidebar.css">
     
     <!-- Alpine.js - COMENTADO porque Livewire 3 ya lo incluye -->
     <!-- <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
