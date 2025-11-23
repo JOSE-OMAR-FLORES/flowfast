@@ -93,31 +93,31 @@
         
         <!-- Top Bar -->
         <header class="bg-white shadow-sm border-b border-gray-200 relative z-10">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center gap-4">
+            <div class="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+                <div class="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-1 min-w-0">
                     <!-- Hamburger Menu (Mobile Only) -->
                     <button @click="sidebarOpen = true" 
-                            class="mobile-menu-btn flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="mobile-menu-btn flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
                     
                     <!-- Page Title -->
-                    <h2 class="text-2xl font-semibold text-gray-800">
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 truncate">
                         @yield('page-title', 'Dashboard')
                     </h2>
                 </div>
                 
                 <!-- User Menu -->
                 @auth
-                    <div x-data="{ userMenuOpen: false }" class="relative">
+                    <div x-data="{ userMenuOpen: false }" class="relative flex-shrink-0">
                         <button @click="userMenuOpen = !userMenuOpen" 
-                                class="flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 px-3 py-2 hover:bg-gray-100 transition-colors">
-                            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium">
+                                class="flex items-center gap-1.5 sm:gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-gray-100 transition-colors active:bg-gray-200">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium text-xs sm:text-sm">
                                 {{ substr(auth()->user()->email, 0, 1) }}
                             </div>
-                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 hidden xs:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
@@ -131,7 +131,7 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
+                             class="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
                             <div class="py-2">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <div class="font-semibold text-gray-800">{{ auth()->user()->email }}</div>
@@ -167,13 +167,13 @@
         </header>
         
         <!-- Main Content Area -->
-        <main class="p-6">
+        <main class="p-3 sm:p-4 lg:p-6">
                 @if (session('success'))
                     <div x-data="{ show: true }" x-show="show" x-transition 
-                         class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                        <span class="block sm:inline">{{ session('success') }}</span>
-                        <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                         class="mb-4 sm:mb-6 bg-green-100 border border-green-400 text-green-700 px-3 py-2 sm:px-4 sm:py-3 rounded-lg relative text-sm sm:text-base">
+                        <span class="block sm:inline pr-8">{{ session('success') }}</span>
+                        <button @click="show = false" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1 hover:bg-green-200 rounded transition-colors">
+                            <svg class="fill-current h-4 w-4 sm:h-5 sm:w-5 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
                             </svg>
                         </button>
@@ -182,10 +182,10 @@
 
                 @if (session('error'))
                     <div x-data="{ show: true }" x-show="show" x-transition 
-                         class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                        <span class="block sm:inline">{{ session('error') }}</span>
-                        <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                         class="mb-4 sm:mb-6 bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-lg relative text-sm sm:text-base">
+                        <span class="block sm:inline pr-8">{{ session('error') }}</span>
+                        <button @click="show = false" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1 hover:bg-red-200 rounded transition-colors">
+                            <svg class="fill-current h-4 w-4 sm:h-5 sm:w-5 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
                             </svg>
                         </button>
