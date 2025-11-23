@@ -17,8 +17,14 @@
     <!-- Google Poppins Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
     
-    <!-- Scripts y Estilos compilados con Vite -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Tailwind CSS CDN (temporal) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Modern Sidebar Styles -->
+    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}" />
+    
+    <!-- Alpine.js - COMENTADO porque Livewire 3 ya lo incluye -->
+    <!-- <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
