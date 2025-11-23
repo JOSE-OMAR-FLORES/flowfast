@@ -12,9 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('leagues', function (Blueprint $table) {
-            $table->string('slug')->unique()->after('name')->comment('URL amigable para páginas públicas');
-            $table->text('description')->nullable()->after('slug')->comment('Descripción pública de la liga');
-            $table->boolean('is_public')->default(true)->after('description')->comment('Si la liga es visible públicamente');
+            // Verificar si la columna ya existe antes de agregarla
+            if (!Schema::hasColumn('leagues', 'slug')) {
+                $table->string('slug')->unique()->after('name')->comment('URL amigable para páginas públicas');
+            }
+            if (!Schema::hasColumn('leagues', 'description')) {
+                $table->text('description')->nullable()->after('slug')->comment('Descripción pública de la liga');
+            }
+            if (!Schema::hasColumn('leagues', 'is_public')) {
+                $table->boolean('is_public')->default(true)->after('description')->comment('Si la liga es visible públicamente');
+            }
         });
     }
 
