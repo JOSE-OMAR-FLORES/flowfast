@@ -1,0 +1,25 @@
+name: laravel-app
+
+services:
+  - name: web
+    environment_slug: php
+    build_command: |
+      # Instalar dependencias PHP
+      composer install --no-dev --optimize-autoloader --no-interaction
+
+      # Instalar Node 18
+      curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      apt-get install -y nodejs
+
+      # Instalar dependencias JS
+      npm install
+
+      # Compilar con Vite
+      npm run build
+
+      # Cache Laravel
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+
+    run_command: heroku-php-apache2 public/
