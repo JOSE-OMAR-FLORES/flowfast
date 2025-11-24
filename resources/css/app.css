@@ -1,6 +1,6 @@
+/* FlowFast Responsive Utilities */
+@import './responsive.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* FlowFast Responsive Utilities */
-@import './responsive.css';
