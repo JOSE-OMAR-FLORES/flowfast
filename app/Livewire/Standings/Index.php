@@ -15,6 +15,7 @@ class Index extends Component
     public $leagues = [];
     public $seasons = [];
     public $standings = [];
+    public $coachTeamIds = [];
 
     protected $standingsService;
 
@@ -26,6 +27,7 @@ class Index extends Component
 
     public function mount()
     {
+        $this->loadCoachTeamIds();
         $this->loadLeagues();
         
         // Seleccionar primera liga por defecto
@@ -42,6 +44,20 @@ class Index extends Component
         }
     }
 
+    public function loadCoachTeamIds()
+    {
+        $user = Auth::user();
+        
+        if ($user->hasRole('coach')) {
+            $coach = $user->userable;
+            $this->coachTeamIds = \App\Models\Team::where('coach_id', $coach->id)
+                ->pluck('id')
+                ->toArray();
+        } else {
+            $this->coachTeamIds = [];
+        }
+    }
+
     public function loadLeagues()
     {
         $user = Auth::user();
@@ -52,13 +68,25 @@ class Index extends Component
         } elseif ($user->hasRole('league_manager')) {
             // Manager ve solo sus ligas
             $this->leagues = $user->leagues()->with('sport')->get();
+        } elseif ($user->hasRole('coach')) {
+            // Coach ve ligas donde tiene equipos
+            $coach = $user->userable;
+            $teamIds = \App\Models\Team::where('coach_id', $coach->id)->pluck('id');
+            $seasonIds = \App\Models\Team::where('coach_id', $coach->id)->pluck('season_id');
+            $leagueIds = Season::whereIn('id', $seasonIds)->pluck('league_id')->unique();
+            
+            $this->leagues = League::whereIn('id', $leagueIds)->with('sport')->get();
+        } elseif ($user->hasRole('referee')) {
+            // Referee ve ligas donde tiene partidos asignados
+            $referee = $user->userable;
+            $leagueIds = \App\Models\Expense::where('referee_id', $referee->id)
+                ->pluck('league_id')
+                ->unique();
+            
+            $this->leagues = League::whereIn('id', $leagueIds)->with('sport')->get();
         } else {
-            // Otros roles ven ligas donde están involucrados
-            $this->leagues = League::whereHas('seasons.teams', function ($query) use ($user) {
-                $query->whereHas('users', function ($q) use ($user) {
-                    $q->where('users.id', $user->id);
-                });
-            })->with('sport')->get();
+            // Otros roles - mostrar ligas vacías
+            $this->leagues = collect();
         }
     }
 
@@ -143,6 +171,7 @@ class Index extends Component
             'leagues' => $this->leagues,
             'seasons' => $this->seasons,
             'standings' => $this->standings,
+            'coachTeamIds' => $this->coachTeamIds,
         ])->layout('layouts.app');
     }
 }

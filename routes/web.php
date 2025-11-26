@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teams/{team}/edit', TeamsEdit::class)->name('teams.edit');
         Route::get('/players', \App\Livewire\Players\Index::class)->name('players.index');
         Route::get('/fixtures', FixturesIndex::class)->name('fixtures');
+        Route::get('/standings', StandingsIndex::class)->name('standings');
         Route::get('/payments', \App\Livewire\Payments\TeamPayments::class)->name('payments.index');
     });
     

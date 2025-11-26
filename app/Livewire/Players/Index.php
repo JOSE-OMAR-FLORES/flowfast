@@ -39,6 +39,18 @@ class Index extends Component
             $leagueManager = $user->userable;
             $this->leagues = League::where('id', $leagueManager->league_id)->get();
             $this->leagueFilter = $leagueManager->league_id;
+        } elseif ($user->user_type === 'coach') {
+            // Coach: obtener ligas de sus equipos
+            $coach = $user->userable;
+            $teamIds = Team::where('coach_id', $coach->id)->pluck('id');
+            $seasonIds = Team::where('coach_id', $coach->id)->pluck('season_id');
+            $leagueIds = \App\Models\Season::whereIn('id', $seasonIds)->pluck('league_id')->unique();
+            $this->leagues = League::whereIn('id', $leagueIds)->orderBy('name')->get();
+            
+            // Cargar equipos del coach
+            $this->teams = Team::where('coach_id', $coach->id)->orderBy('name')->get();
+        } else {
+            $this->leagues = collect();
         }
 
         $this->loadTeams();
@@ -126,6 +138,8 @@ class Index extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        
         $query = Player::with(['team', 'league'])
             ->when($this->search, function ($q) {
                 $q->where(function ($query) {
@@ -138,11 +152,21 @@ class Index extends Component
             ->when($this->leagueFilter, fn($q) => $q->where('league_id', $this->leagueFilter))
             ->when($this->teamFilter, fn($q) => $q->where('team_id', $this->teamFilter))
             ->when($this->positionFilter, fn($q) => $q->where('position', $this->positionFilter))
-            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
-            ->orderBy('jersey_number')
-            ->orderBy('last_name');
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter));
 
-        $players = $query->paginate(15);
+        // Filtrar por rol del usuario
+        if ($user->user_type === 'coach') {
+            $coach = $user->userable;
+            $teamIds = Team::where('coach_id', $coach->id)->pluck('id');
+            $query->whereIn('team_id', $teamIds);
+        } elseif ($user->user_type === 'league_manager') {
+            $leagueManager = $user->userable;
+            $query->where('league_id', $leagueManager->league_id);
+        }
+
+        $players = $query->orderBy('jersey_number')
+            ->orderBy('last_name')
+            ->paginate(15);
 
         return view('livewire.players.index', [
             'players' => $players,

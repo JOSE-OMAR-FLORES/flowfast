@@ -95,6 +95,18 @@ class Index extends Component
     {
         $user = Auth::user();
         
+        // Variables para filtrar por coach
+        $coachTeamIds = collect();
+        $coachLeagueIds = collect();
+        
+        // Si es coach, obtener sus equipos y ligas
+        if ($user->user_type === 'coach') {
+            $coach = $user->userable;
+            $coachTeamIds = \App\Models\Team::where('coach_id', $coach->id)->pluck('id');
+            $seasonIds = \App\Models\Team::where('coach_id', $coach->id)->pluck('season_id');
+            $coachLeagueIds = Season::whereIn('id', $seasonIds)->pluck('league_id')->unique();
+        }
+        
         // Obtener ligas que tienen fixtures (con sus temporadas y fixtures incluyendo venue)
         $leaguesQuery = League::with(['seasons.fixtures.homeTeam', 'seasons.fixtures.awayTeam', 'seasons.fixtures.venue'])
             ->whereHas('seasons.fixtures'); // Solo ligas con fixtures
@@ -102,6 +114,9 @@ class Index extends Component
         // Filtros de acceso según rol
         if ($user->user_type === 'league_manager') {
             $leaguesQuery->where('league_manager_id', $user->userable_id);
+        } elseif ($user->user_type === 'coach') {
+            // Coach solo ve las ligas de sus equipos
+            $leaguesQuery->whereIn('id', $coachLeagueIds);
         }
 
         // Aplicar filtros
@@ -112,15 +127,23 @@ class Index extends Component
         $leagues = $leaguesQuery->get();
 
         // Procesar ligas y agrupar fixtures por jornada
-        $leagues = $leagues->map(function ($league) use ($user) {
+        $leagues = $leagues->map(function ($league) use ($user, $coachTeamIds) {
             $league->seasons = $league->seasons->filter(function ($season) {
                 if ($this->seasonFilter && $season->id != $this->seasonFilter) {
                     return false;
                 }
                 return true;
-            })->map(function ($season) use ($user) {
+            })->map(function ($season) use ($user, $coachTeamIds) {
                 // Filtrar fixtures según los filtros aplicados
-                $filteredFixtures = $season->fixtures->filter(function ($fixture) use ($user) {
+                $filteredFixtures = $season->fixtures->filter(function ($fixture) use ($user, $coachTeamIds) {
+                    // Si es coach, solo mostrar partidos de sus equipos
+                    if ($user->user_type === 'coach') {
+                        if (!$coachTeamIds->contains($fixture->home_team_id) && 
+                            !$coachTeamIds->contains($fixture->away_team_id)) {
+                            return false;
+                        }
+                    }
+                    
                     // Si es referee, solo mostrar partidos asignados a él
                     if ($user->user_type === 'referee') {
                         // Verificar si está en la relación muchos-a-muchos (fixture_referees)
@@ -178,8 +201,25 @@ class Index extends Component
         });
 
         // Obtener todas las ligas que tienen fixtures para el filtro
-        $allLeagues = League::whereHas('seasons.fixtures')->get();
-        $allSeasons = Season::whereHas('fixtures')->get();
+        $allLeaguesQuery = League::whereHas('seasons.fixtures');
+        
+        // Filtrar ligas según rol
+        if ($user->user_type === 'coach') {
+            $allLeaguesQuery->whereIn('id', $coachLeagueIds);
+        } elseif ($user->user_type === 'league_manager') {
+            $allLeaguesQuery->where('league_manager_id', $user->userable_id);
+        }
+        
+        $allLeagues = $allLeaguesQuery->get();
+        
+        // Obtener temporadas para el filtro
+        $seasonsQuery = Season::whereHas('fixtures');
+        if ($user->user_type === 'coach') {
+            $seasonsQuery->whereIn('league_id', $coachLeagueIds);
+        } elseif ($user->user_type === 'league_manager') {
+            $seasonsQuery->whereHas('league', fn($q) => $q->where('league_manager_id', $user->userable_id));
+        }
+        $allSeasons = $seasonsQuery->get();
 
         return view('livewire.fixtures.index', [
             'leagues' => $leagues,

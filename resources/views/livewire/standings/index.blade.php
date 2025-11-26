@@ -97,10 +97,15 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($standings as $standing)
-                            <tr class="hover:bg-gray-50 transition-colors
-                                @if($standing->position === 1) bg-green-50
-                                @elseif($standing->position === 2) bg-blue-50
-                                @elseif($standing->position === 3) bg-yellow-50
+                            @php
+                                $isCoachTeam = in_array($standing->team_id, $coachTeamIds ?? []);
+                            @endphp
+                            <tr class="transition-colors
+                                @if($isCoachTeam) bg-indigo-100 border-l-4 border-indigo-500 hover:bg-indigo-200
+                                @elseif($standing->position === 1) bg-green-50 hover:bg-green-100
+                                @elseif($standing->position === 2) bg-blue-50 hover:bg-blue-100
+                                @elseif($standing->position === 3) bg-yellow-50 hover:bg-yellow-100
+                                @else hover:bg-gray-50
                                 @endif">
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="flex items-center gap-2">
@@ -127,7 +132,12 @@
                                                 </span>
                                             </div>
                                         @endif
-                                        <span class="font-medium text-gray-900">{{ $standing->team->name }}</span>
+                                        <span class="font-medium text-gray-900 @if($isCoachTeam) font-bold text-indigo-700 @endif">
+                                            {{ $standing->team->name }}
+                                            @if($isCoachTeam)
+                                                <span class="ml-1 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full">Tu equipo</span>
+                                            @endif
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-center text-sm text-gray-900">{{ $standing->played }}</td>
@@ -172,8 +182,12 @@
             {{-- Mobile Cards --}}
             <div class="md:hidden divide-y divide-gray-200">
                 @foreach($standings as $standing)
+                    @php
+                        $isCoachTeamMobile = in_array($standing->team_id, $coachTeamIds ?? []);
+                    @endphp
                     <div class="p-4 
-                        @if($standing->position === 1) bg-green-50
+                        @if($isCoachTeamMobile) bg-indigo-100 border-l-4 border-indigo-500
+                        @elseif($standing->position === 1) bg-green-50
                         @elseif($standing->position === 2) bg-blue-50
                         @elseif($standing->position === 3) bg-yellow-50
                         @endif">
@@ -199,9 +213,14 @@
                                         </span>
                                     </div>
                                 @endif
-                                <span class="font-semibold text-gray-900">{{ $standing->team->name }}</span>
+                                <div class="flex flex-col">
+                                    <span class="font-semibold @if($isCoachTeamMobile) text-indigo-700 @else text-gray-900 @endif">{{ $standing->team->name }}</span>
+                                    @if($isCoachTeamMobile)
+                                        <span class="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full w-fit mt-1">Tu equipo</span>
+                                    @endif
+                                </div>
                             </div>
-                            <span class="text-2xl font-bold text-blue-600">{{ $standing->points }}</span>
+                            <span class="text-2xl font-bold @if($isCoachTeamMobile) text-indigo-600 @else text-blue-600 @endif">{{ $standing->points }}</span>
                         </div>
 
                         {{-- Stats Grid --}}
