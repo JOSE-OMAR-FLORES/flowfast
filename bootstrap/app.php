@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Agregar middleware global para redireccionar según rol
         $middleware->append(\App\Http\Middleware\RedirectBasedOnRole::class);
+        
+        // Confiar en proxies de Digital Ocean App Platform
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
