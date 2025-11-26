@@ -113,6 +113,7 @@ class Create extends Component
                 'home_team_id' => $this->home_team_id,
                 'away_team_id' => $this->away_team_id,
                 'season_id' => $homeTeam->season_id,
+                'round_id' => null, // Partidos amistosos no tienen jornada
                 'venue' => $venueName,
                 'referee_id' => $this->referee_id ?: null,
                 'scheduled_at' => $this->match_date . ' ' . $this->match_time . ':00',

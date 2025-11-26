@@ -111,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,league_manager'])->group(function () {
         Route::get('/admin/friendly-matches', \App\Livewire\FriendlyMatches\Index::class)->name('friendly-matches.index');
         Route::get('/admin/friendly-matches/create', \App\Livewire\FriendlyMatches\Create::class)->name('friendly-matches.create');
+        Route::get('/admin/friendly-matches/{id}', \App\Livewire\FriendlyMatches\Show::class)->name('friendly-matches.show');
     });
     
     // Invitations Routes (Admin & League Manager)

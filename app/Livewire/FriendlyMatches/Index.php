@@ -65,7 +65,7 @@ class Index extends Component
 
     public function render()
     {
-        $query = GameMatch::with(['homeTeam.season.league', 'awayTeam.season.league', 'referee', 'venue'])
+        $query = GameMatch::with(['homeTeam.season.league.sport', 'awayTeam.season.league', 'referee', 'incomes', 'expenses'])
             ->where('is_friendly', true);
 
         // Filtro por deporte
@@ -101,8 +101,7 @@ class Index extends Component
             });
         }
 
-        $matches = $query->orderBy('match_date', 'desc')
-            ->orderBy('match_time', 'desc')
+        $matches = $query->orderBy('scheduled_at', 'desc')
             ->paginate(15);
 
         $sports = Sport::all();

@@ -87,6 +87,16 @@ class GameMatch extends Model
         return $this->hasMany(MatchEvent::class, 'game_match_id')->orderBy('minute')->orderBy('created_at');
     }
 
+    public function incomes(): HasMany
+    {
+        return $this->hasMany(Income::class, 'match_id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'match_id');
+    }
+
     // Scopes
     public function scopeLive($query)
     {

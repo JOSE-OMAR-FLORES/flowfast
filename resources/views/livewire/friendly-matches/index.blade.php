@@ -81,10 +81,10 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ \Carbon\Carbon::parse($match->match_date)->format('d/m/Y') }}
+                                        {{ \Carbon\Carbon::parse($match->scheduled_at)->format('d/m/Y') }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($match->match_time)->format('H:i') }}
+                                        {{ \Carbon\Carbon::parse($match->scheduled_at)->format('H:i') }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
@@ -129,16 +129,32 @@
                                         <div>Local: ${{ number_format($match->home_team_fee, 2) }}</div>
                                         <div>Visit: ${{ number_format($match->away_team_fee, 2) }}</div>
                                     </div>
+                                    @php
+                                        $paidIncomes = $match->incomes->where('payment_status', 'confirmed')->count();
+                                        $totalIncomes = $match->incomes->count();
+                                        $paidExpenses = $match->expenses->where('payment_status', 'confirmed')->count();
+                                        $totalExpenses = $match->expenses->count();
+                                    @endphp
+                                    <div class="mt-1 text-xs">
+                                        @if($totalIncomes > 0)
+                                            <span class="{{ $paidIncomes === $totalIncomes ? 'text-green-600' : 'text-yellow-600' }}">
+                                                💰 {{ $paidIncomes }}/{{ $totalIncomes }}
+                                            </span>
+                                        @endif
+                                        @if($totalExpenses > 0)
+                                            <span class="{{ $paidExpenses === $totalExpenses ? 'text-green-600' : 'text-orange-600' }} ml-2">
+                                                💸 {{ $paidExpenses }}/{{ $totalExpenses }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end gap-2">
-                                        @if($match->status === 'scheduled')
-                                            <a href="{{ route('matches.edit', $match->id) }}" 
-                                               class="text-blue-600 hover:text-blue-900" 
-                                               title="Editar">
-                                                ✏️
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('friendly-matches.show', $match->id) }}" 
+                                           class="text-blue-600 hover:text-blue-900" 
+                                           title="Ver Detalles y Pagos">
+                                            💰
+                                        </a>
                                         <button wire:click="deleteMatch({{ $match->id }})" 
                                                 wire:confirm="¿Estás seguro de eliminar este partido amistoso? Se eliminarán también los ingresos y egresos relacionados."
                                                 class="text-red-600 hover:text-red-900" 
@@ -176,7 +192,7 @@
                                     @endif
                                 </div>
                                 <div class="text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($match->match_date)->format('d/m/Y') }} {{ \Carbon\Carbon::parse($match->match_time)->format('H:i') }}
+                                    {{ \Carbon\Carbon::parse($match->scheduled_at)->format('d/m/Y H:i') }}
                                 </div>
                             </div>
 
@@ -210,16 +226,35 @@
                                     <span class="text-gray-500">Cuota Visitante:</span>
                                     <span class="font-medium">${{ number_format($match->away_team_fee, 2) }}</span>
                                 </div>
+                                @php
+                                    $paidIncomes = $match->incomes->where('payment_status', 'confirmed')->count();
+                                    $totalIncomes = $match->incomes->count();
+                                    $paidExpenses = $match->expenses->where('payment_status', 'confirmed')->count();
+                                    $totalExpenses = $match->expenses->count();
+                                @endphp
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Estado Pagos:</span>
+                                    <span>
+                                        @if($totalIncomes > 0)
+                                            <span class="{{ $paidIncomes === $totalIncomes ? 'text-green-600' : 'text-yellow-600' }}">
+                                                💰 {{ $paidIncomes }}/{{ $totalIncomes }}
+                                            </span>
+                                        @endif
+                                        @if($totalExpenses > 0)
+                                            <span class="{{ $paidExpenses === $totalExpenses ? 'text-green-600' : 'text-orange-600' }} ml-1">
+                                                💸 {{ $paidExpenses }}/{{ $totalExpenses }}
+                                            </span>
+                                        @endif
+                                    </span>
+                                </div>
                             </div>
 
                             {{-- Acciones --}}
                             <div class="border-t pt-3 mt-3 flex justify-end gap-2">
-                                @if($match->status === 'scheduled')
-                                    <a href="{{ route('matches.edit', $match->id) }}" 
-                                       class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
-                                        ✏️ Editar
-                                    </a>
-                                @endif
+                                <a href="{{ route('friendly-matches.show', $match->id) }}" 
+                                   class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                                    💰 Ver Pagos
+                                </a>
                                 <button wire:click="deleteMatch({{ $match->id }})" 
                                         wire:confirm="¿Estás seguro de eliminar este partido amistoso?"
                                         class="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm">
