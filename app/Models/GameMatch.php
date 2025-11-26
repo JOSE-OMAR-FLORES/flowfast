@@ -97,6 +97,11 @@ class GameMatch extends Model
         return $this->hasMany(Expense::class, 'match_id');
     }
 
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(MatchAppeal::class, 'match_id');
+    }
+
     // Scopes
     public function scopeLive($query)
     {

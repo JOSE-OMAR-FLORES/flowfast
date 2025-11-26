@@ -92,6 +92,11 @@ class Fixture extends Model
         return $this->hasMany(FixtureEvent::class);
     }
 
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(MatchAppeal::class);
+    }
+
     // Scopes
     public function scopeUpcoming($query)
     {

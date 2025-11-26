@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/fixtures', FixturesIndex::class)->name('fixtures');
         Route::get('/standings', StandingsIndex::class)->name('standings');
         Route::get('/payments', \App\Livewire\Payments\TeamPayments::class)->name('payments.index');
+        Route::get('/appeals', \App\Livewire\Coach\Appeals::class)->name('appeals');
     });
     
     // Player Routes - Separate area for players  
@@ -118,6 +119,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,league_manager'])->group(function () {
         Route::get('/admin/invitations', InvitationsIndex::class)->name('invitations.index');
         Route::get('/admin/invitations/create', InvitationsCreate::class)->name('invitations.create');
+    });
+
+    // Appeals Routes (Admin & League Manager)
+    Route::middleware(['role:admin,league_manager'])->group(function () {
+        Route::get('/admin/appeals', \App\Livewire\Admin\Appeals::class)->name('appeals.index');
     });
     
     // Referees Routes (Admin & League Manager)
