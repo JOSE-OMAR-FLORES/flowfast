@@ -6,6 +6,7 @@ use App\Models\Fixture;
 use App\Models\Player; 
 use App\Models\User;
 use App\Models\Referee;
+use App\Models\Sport;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -14,6 +15,7 @@ class Live extends Component
     public Fixture $match;
     public $homeTeamPlayers = [];
     public $awayTeamPlayers = [];
+    public ?Sport $sport = null;
     
     // Formulario de evento
     public $eventType = '';
@@ -21,6 +23,8 @@ class Live extends Component
     public $playerId = '';
     public $minute = 0;
     public $extraTime = 0;
+    public $period = 1;
+    public $points = 1;
     public $description = '';
     public $showEventForm = false;
     
@@ -39,14 +43,89 @@ class Live extends Component
         $this->match = Fixture::with([
             'homeTeam',
             'awayTeam',
-            'season.league',
-            'referees.userable', // Cargar también el modelo Referee con first_name y last_name
-            'incomes.team', // Cargar ingresos con equipos
-            'expenses.referee', // Cargar egresos con árbitros
+            'season.league.sport',
+            'referees.userable',
+            'incomes.team',
+            'expenses.referee',
         ])->findOrFail($matchId);
+
+        // Cargar el deporte de la liga
+        $this->sport = $this->match->season->league->sport;
 
         $this->loadPlayers();
         $this->loadAvailableReferees();
+    }
+
+    /**
+     * Obtener los tipos de eventos disponibles según el deporte
+     */
+    public function getEventTypesProperty(): array
+    {
+        if (!$this->sport) {
+            return [];
+        }
+        return $this->sport->getAvailableEventTypes();
+    }
+
+    /**
+     * Obtener la configuración de periodos del deporte
+     */
+    public function getPeriodConfigProperty(): array
+    {
+        if (!$this->sport) {
+            return ['uses_periods' => false, 'count' => 1, 'name' => 'Periodo', 'plural' => 'Periodos'];
+        }
+        return $this->sport->getPeriodConfig();
+    }
+
+    /**
+     * Verificar si el deporte permite empates
+     */
+    public function getAllowsDrawsProperty(): bool
+    {
+        return $this->sport?->allowsDraws() ?? true;
+    }
+
+    /**
+     * Verificar si es un deporte específico
+     */
+    public function isSport(string $slug): bool
+    {
+        return $this->sport?->slug === $slug;
+    }
+
+    /**
+     * Obtener eventos que afectan el marcador para este deporte
+     */
+    public function getScoringEventsProperty(): array
+    {
+        $eventTypes = $this->eventTypes;
+        $scoring = [];
+        
+        foreach ($eventTypes as $key => $config) {
+            if ($config['affects_score'] ?? false) {
+                $scoring[$key] = $config;
+            }
+        }
+        
+        return $scoring;
+    }
+
+    /**
+     * Obtener eventos que NO afectan el marcador
+     */
+    public function getNonScoringEventsProperty(): array
+    {
+        $eventTypes = $this->eventTypes;
+        $nonScoring = [];
+        
+        foreach ($eventTypes as $key => $config) {
+            if (!($config['affects_score'] ?? false)) {
+                $nonScoring[$key] = $config;
+            }
+        }
+        
+        return $nonScoring;
     }
 
     public function loadPlayers()
@@ -64,11 +143,8 @@ class Live extends Component
 
     public function loadAvailableReferees()
     {
-        // Obtener la liga del partido
         $leagueId = $this->match->season->league_id;
         
-        // Obtener todos los referees asignados a esta liga
-        // Usar un join directo con la tabla referees para evitar el query polimórfico
         $this->availableReferees = User::where('users.user_type', 'referee')
             ->where('users.userable_type', \App\Models\Referee::class)
             ->join('referees', function($join) use ($leagueId) {
@@ -111,7 +187,6 @@ class Live extends Component
         ]);
 
         try {
-            // Verificar si ya está asignado
             if ($this->match->referees()->where('user_id', $this->selectedRefereeId)->exists()) {
                 session()->flash('error', 'Este árbitro ya está asignado a este partido.');
                 return;
@@ -121,7 +196,6 @@ class Live extends Component
                 'referee_type' => $this->selectedRefereeType,
             ]);
 
-            // Refrescar la relación
             $this->match->load('referees');
 
             session()->flash('success', 'Árbitro asignado correctamente.');
@@ -131,12 +205,10 @@ class Live extends Component
         }
     }
 
-        // Método para compatibilidad con el botón wire:click="assignReferee"
-        public function assignReferee()
-        {
-            // Simplemente reutiliza la lógica de addReferee
-            $this->addReferee();
-        }
+    public function assignReferee()
+    {
+        $this->addReferee();
+    }
 
     public function removeReferee($userId)
     {
@@ -173,13 +245,8 @@ class Live extends Component
         try {
             DB::beginTransaction();
 
-            // Finalizar el partido
             $this->match->finishMatch();
-
-            // Generar ingresos para los equipos (cobros por partido)
             $this->generateTeamCharges();
-
-            // Generar egresos para los árbitros (pagos por arbitraje)
             $this->generateRefereePayments();
 
             DB::commit();
@@ -194,18 +261,15 @@ class Live extends Component
     protected function generateTeamCharges()
     {
         $league = $this->match->season->league;
-        $matchFee = $league->match_fee_per_team ?? $league->match_fee ?? 0; // Costo por partido configurado en la liga
+        $matchFee = $league->match_fee_per_team ?? $league->match_fee ?? 0;
 
         if ($matchFee > 0) {
-            // Verificar si ya se generaron los cobros para este partido
             $existingIncomes = \App\Models\Income::where('fixture_id', $this->match->id)->count();
             
             if ($existingIncomes > 0) {
-                // Ya se generaron los cobros, no duplicar
                 return;
             }
 
-            // Cobro al equipo local
             \App\Models\Income::create([
                 'league_id' => $league->id,
                 'season_id' => $this->match->season_id,
@@ -219,7 +283,6 @@ class Live extends Component
                 'generated_by' => auth()->id(),
             ]);
 
-            // Cobro al equipo visitante
             \App\Models\Income::create([
                 'league_id' => $league->id,
                 'season_id' => $this->match->season_id,
@@ -238,26 +301,22 @@ class Live extends Component
     protected function generateRefereePayments()
     {
         $league = $this->match->season->league;
-        $refereePayment = $league->referee_payment ?? 0; // Pago por partido configurado en la liga
+        $refereePayment = $league->referee_payment ?? 0;
 
         if ($refereePayment > 0) {
-            // Verificar si ya se generaron los pagos para este partido
             $existingExpenses = \App\Models\Expense::where('fixture_id', $this->match->id)
                 ->where('expense_type', 'referee_payment')
                 ->count();
             
             if ($existingExpenses > 0) {
-                // Ya se generaron los pagos, no duplicar
                 return;
             }
 
-            // Generar pago para cada árbitro asignado
             foreach ($this->match->referees as $referee) {
-                // Calcular monto según el tipo de árbitro
                 $amount = match($referee->pivot->referee_type) {
                     'main' => $refereePayment,
-                    'assistant' => $refereePayment * 0.7, // 70% para asistentes
-                    'fourth_official' => $refereePayment * 0.5, // 50% para cuarto árbitro
+                    'assistant' => $refereePayment * 0.7,
+                    'fourth_official' => $refereePayment * 0.5,
                     default => $refereePayment,
                 };
 
@@ -265,8 +324,8 @@ class Live extends Component
                     'league_id' => $league->id,
                     'season_id' => $this->match->season_id,
                     'fixture_id' => $this->match->id,
-                    'referee_id' => $referee->userable_id, // ID del modelo Referee
-                    'beneficiary_user_id' => $referee->id, // ID del User
+                    'referee_id' => $referee->userable_id,
+                    'beneficiary_user_id' => $referee->id,
                     'expense_type' => 'referee_payment',
                     'amount' => $amount,
                     'description' => 'Pago por arbitraje (' . match($referee->pivot->referee_type) {
@@ -291,29 +350,37 @@ class Live extends Component
         $this->playerOutId = '';
         $this->playerInId = '';
         $this->description = '';
+        $this->period = 1;
+        
+        // Establecer puntos según el tipo de evento
+        $eventConfig = $this->eventTypes[$type] ?? null;
+        $this->points = $eventConfig['points'] ?? 1;
+        
         $this->showEventForm = true;
     }
 
     public function closeEventForm()
     {
-        $this->reset(['eventType', 'teamId', 'playerId', 'minute', 'extraTime', 'description', 'playerOutId', 'playerInId', 'showEventForm']);
+        $this->reset(['eventType', 'teamId', 'playerId', 'minute', 'extraTime', 'description', 'playerOutId', 'playerInId', 'showEventForm', 'period', 'points']);
     }
 
     protected function rules()
     {
         $rules = [
-            'eventType' => 'required|in:goal,own_goal,yellow_card,red_card,substitution,penalty_scored,penalty_missed',
+            'eventType' => 'required|string',
             'teamId' => 'required|exists:teams,id',
-            'minute' => 'required|integer|min:0|max:150',
+            'minute' => 'nullable|integer|min:0|max:999',
             'extraTime' => 'nullable|integer|min:0|max:20',
             'description' => 'nullable|string|max:500',
+            'period' => 'nullable|integer|min:1',
+            'points' => 'nullable|integer|min:0',
         ];
 
         if ($this->eventType === 'substitution') {
             $rules['playerOutId'] = 'required|exists:players,id';
             $rules['playerInId'] = 'required|exists:players,id|different:playerOutId';
         } else {
-            $rules['playerId'] = 'required|exists:players,id';
+            $rules['playerId'] = 'nullable|exists:players,id';
         }
 
         return $rules;
@@ -326,9 +393,7 @@ class Live extends Component
             'playerOutId.required' => 'Debes seleccionar el jugador que sale.',
             'playerInId.required' => 'Debes seleccionar el jugador que entra.',
             'playerInId.different' => 'Debe ser un jugador diferente.',
-            'minute.required' => 'El minuto es obligatorio.',
             'minute.min' => 'El minuto debe ser mayor o igual a 0.',
-            'minute.max' => 'El minuto no puede ser mayor a 150.',
         ];
     }
 
@@ -342,26 +407,31 @@ class Live extends Component
         $this->validate();
 
         try {
-            // Crear evento principal en fixture_events
+            // Obtener configuración del evento
+            $eventConfig = $this->eventTypes[$this->eventType] ?? null;
+            $pointsToAdd = $eventConfig['points'] ?? $this->points ?? 1;
+
+            // Crear evento
             $event = \App\Models\FixtureEvent::create([
                 'fixture_id' => $this->match->id,
-                'player_id' => $this->eventType === 'substitution' ? $this->playerOutId : $this->playerId,
+                'player_id' => $this->eventType === 'substitution' ? $this->playerOutId : ($this->playerId ?: null),
                 'team_id' => $this->teamId,
                 'event_type' => $this->eventType,
-                'minute' => $this->minute,
+                'points' => $pointsToAdd,
+                'period' => $this->period,
+                'minute' => $this->minute ?? 0,
                 'extra_time' => $this->extraTime ?? 0,
                 'description' => $this->description,
                 'metadata' => $this->eventType === 'substitution' ? ['player_in_id' => $this->playerInId] : null,
             ]);
 
-            // Actualizar el marcador si es un gol
-            if ($this->eventType === 'goal') {
+            // Actualizar el marcador si el evento afecta el puntaje
+            if ($eventConfig['affects_score'] ?? false) {
                 if ($this->teamId == $this->match->home_team_id) {
-                    $this->match->increment('home_score');
+                    $this->match->increment('home_score', $pointsToAdd);
                 } else {
-                    $this->match->increment('away_score');
+                    $this->match->increment('away_score', $pointsToAdd);
                 }
-                // Recargar el partido para actualizar la vista
                 $this->match->refresh();
             }
 
@@ -377,6 +447,17 @@ class Live extends Component
     {
         try {
             $event = \App\Models\FixtureEvent::findOrFail($eventId);
+            
+            // Restar puntos si el evento afectaba el marcador
+            if ($event->affectsScore()) {
+                if ($event->team_id == $this->match->home_team_id) {
+                    $this->match->decrement('home_score', $event->getScorePoints());
+                } else {
+                    $this->match->decrement('away_score', $event->getScorePoints());
+                }
+                $this->match->refresh();
+            }
+            
             $event->delete();
             session()->flash('success', 'Evento eliminado.');
         } catch (\Exception $e) {
@@ -384,28 +465,21 @@ class Live extends Component
         }
     }
 
-    /**
-     * Confirmar pago de equipo (Income)
-     * Puede ser confirmado por: admin, league_manager, referee
-     */
     public function confirmTeamPayment($incomeId)
     {
         try {
             $income = \App\Models\Income::findOrFail($incomeId);
 
-            // Validar que el usuario tenga permiso
             if (!in_array(auth()->user()->user_type, ['admin', 'league_manager', 'referee'])) {
                 session()->flash('error', 'No tienes permiso para confirmar pagos.');
                 return;
             }
 
-            // Validar que esté en estado 'paid'
             if ($income->payment_status !== 'paid') {
                 session()->flash('error', 'El pago aún no ha sido marcado como pagado por el equipo.');
                 return;
             }
 
-            // Confirmar recepción
             $income->update([
                 'payment_status' => 'confirmed',
                 'confirmed_by_admin_user' => auth()->id(),
@@ -414,8 +488,6 @@ class Live extends Component
             ]);
 
             session()->flash('success', '¡Pago del equipo confirmado exitosamente!');
-            
-            // Recargar el partido con las relaciones
             $this->mount($this->match->id);
 
         } catch (\Exception $e) {
@@ -423,36 +495,27 @@ class Live extends Component
         }
     }
 
-    /**
-     * Confirmar recepción de pago de árbitro (Expense)
-     * Solo puede confirmar el referee beneficiario
-     */
     public function confirmMyPayment($expenseId)
     {
         try {
             $expense = \App\Models\Expense::findOrFail($expenseId);
 
-            // Validar que sea el beneficiario
             if ($expense->beneficiary_user_id !== auth()->id()) {
                 session()->flash('error', 'Solo puedes confirmar tu propio pago.');
                 return;
             }
 
-            // Validar que esté en estado 'ready_for_payment'
             if ($expense->payment_status !== 'ready_for_payment') {
                 session()->flash('error', 'El pago aún no ha sido realizado por el administrador.');
                 return;
             }
 
-            // Confirmar recepción
             $expense->update([
                 'payment_status' => 'confirmed',
                 'confirmed_at' => now(),
             ]);
 
             session()->flash('success', '¡Has confirmado la recepción de tu pago exitosamente!');
-            
-            // Recargar el partido con las relaciones
             $this->mount($this->match->id);
 
         } catch (\Exception $e) {
@@ -460,27 +523,21 @@ class Live extends Component
         }
     }
 
-    /**
-     * Aprobar pago a árbitro (solo admin/league_manager)
-     */
     public function approveRefereePayment($expenseId)
     {
         try {
             $expense = \App\Models\Expense::findOrFail($expenseId);
 
-            // Validar que el usuario tenga permiso
             if (!in_array(auth()->user()->user_type, ['admin', 'league_manager'])) {
                 session()->flash('error', 'No tienes permiso para aprobar pagos.');
                 return;
             }
 
-            // Validar que esté en estado 'pending'
             if ($expense->payment_status !== 'pending') {
                 session()->flash('error', 'Este pago ya ha sido procesado.');
                 return;
             }
 
-            // Aprobar pago
             $expense->update([
                 'payment_status' => 'approved',
                 'approved_by' => auth()->id(),
@@ -488,8 +545,6 @@ class Live extends Component
             ]);
 
             session()->flash('success', '¡Pago aprobado exitosamente!');
-            
-            // Recargar el partido con las relaciones
             $this->mount($this->match->id);
 
         } catch (\Exception $e) {
@@ -497,27 +552,21 @@ class Live extends Component
         }
     }
 
-    /**
-     * Marcar como pagado a árbitro (solo admin/league_manager)
-     */
     public function markAsPaid($expenseId)
     {
         try {
             $expense = \App\Models\Expense::findOrFail($expenseId);
 
-            // Validar que el usuario tenga permiso
             if (!in_array(auth()->user()->user_type, ['admin', 'league_manager'])) {
                 session()->flash('error', 'No tienes permiso para marcar pagos.');
                 return;
             }
 
-            // Validar que esté en estado 'approved'
             if ($expense->payment_status !== 'approved') {
                 session()->flash('error', 'El pago debe estar aprobado primero.');
                 return;
             }
 
-            // Marcar como pagado
             $expense->update([
                 'payment_status' => 'ready_for_payment',
                 'paid_by' => auth()->id(),
@@ -525,8 +574,6 @@ class Live extends Component
             ]);
 
             session()->flash('success', '¡Pago marcado como realizado! El árbitro debe confirmar la recepción.');
-            
-            // Recargar el partido con las relaciones
             $this->mount($this->match->id);
 
         } catch (\Exception $e) {
@@ -536,11 +583,15 @@ class Live extends Component
 
     public function render()
     {
-        // Usar los eventos del fixture
         $events = $this->match->fixtureEvents()->with(['player', 'team'])->get();
+        
         return view('livewire.matches.live', [
             'events' => $events,
-            'eventTypes' => ['goal','own_goal','yellow_card','red_card','substitution','penalty_scored','penalty_missed'],
+            'eventTypes' => $this->eventTypes,
+            'scoringEvents' => $this->scoringEvents,
+            'nonScoringEvents' => $this->nonScoringEvents,
+            'periodConfig' => $this->periodConfig,
+            'allowsDraws' => $this->allowsDraws,
             'homePlayers' => $this->homeTeamPlayers,
             'awayPlayers' => $this->awayTeamPlayers,
         ])->layout('layouts.app');

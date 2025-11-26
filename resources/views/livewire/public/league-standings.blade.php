@@ -88,14 +88,34 @@
                             <tr class="bg-slate-800/50 border-b border-slate-700">
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Pos</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Equipo</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">PJ</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">G</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">E</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">P</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">GF</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">GC</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Dif</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Pts</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Partidos Jugados">PJ</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Ganados">G</th>
+                                @if($allowsDraws)
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Empatados">E</th>
+                                @endif
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Perdidos">P</th>
+                                
+                                @if($sportSlug === 'basquetbol')
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Puntos a Favor">PF</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Puntos en Contra">PC</th>
+                                @elseif($sportSlug === 'voleibol')
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Sets Ganados">SG</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Sets Perdidos">SP</th>
+                                @elseif($sportSlug === 'beisbol')
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Carreras a Favor">CF</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Carreras en Contra">CC</th>
+                                @else
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Goles a Favor">GF</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Goles en Contra">GC</th>
+                                @endif
+                                
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Diferencia">Dif</th>
+                                
+                                @if(in_array($sportSlug, ['basquetbol', 'beisbol']))
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Porcentaje de Victorias">%</th>
+                                @endif
+                                
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Puntos">Pts</th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Forma</th>
                             </tr>
                         </thead>
@@ -136,7 +156,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->played }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->won }}</td>
+                                    @if($allowsDraws)
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->drawn }}</td>
+                                    @endif
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->lost }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->goals_for }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->goals_against }}</td>
@@ -145,6 +167,16 @@
                                             {{ $standing->goal_difference > 0 ? '+' : '' }}{{ $standing->goal_difference }}
                                         </span>
                                     </td>
+                                    
+                                    @if(in_array($sportSlug, ['basquetbol', 'beisbol']))
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">
+                                            @php
+                                                $winPct = $standing->played > 0 ? round(($standing->won / $standing->played) * 100, 1) : 0;
+                                            @endphp
+                                            {{ number_format($winPct, 1) }}%
+                                        </td>
+                                    @endif
+                                    
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 font-bold text-lg text-cyan-400 shadow-lg shadow-cyan-500/10">
                                             {{ $standing->points }}
@@ -223,11 +255,33 @@
                                 <div class="font-bold text-white">{{ $standing->played }}</div>
                             </div>
                             <div class="text-center bg-slate-800/50 rounded-lg py-2">
-                                <div class="text-xs text-slate-500 mb-1">G-E-P</div>
-                                <div class="font-bold text-white text-sm">{{ $standing->won }}-{{ $standing->drawn }}-{{ $standing->lost }}</div>
+                                <div class="text-xs text-slate-500 mb-1">
+                                    @if($allowsDraws)
+                                        G-E-P
+                                    @else
+                                        G-P
+                                    @endif
+                                </div>
+                                <div class="font-bold text-white text-sm">
+                                    @if($allowsDraws)
+                                        {{ $standing->won }}-{{ $standing->drawn }}-{{ $standing->lost }}
+                                    @else
+                                        {{ $standing->won }}-{{ $standing->lost }}
+                                    @endif
+                                </div>
                             </div>
                             <div class="text-center bg-slate-800/50 rounded-lg py-2">
-                                <div class="text-xs text-slate-500 mb-1">Goles</div>
+                                <div class="text-xs text-slate-500 mb-1">
+                                    @if($sportSlug === 'basquetbol')
+                                        Puntos
+                                    @elseif($sportSlug === 'voleibol')
+                                        Sets
+                                    @elseif($sportSlug === 'beisbol')
+                                        Carreras
+                                    @else
+                                        Goles
+                                    @endif
+                                </div>
                                 <div class="font-bold text-white text-sm">{{ $standing->goals_for }}-{{ $standing->goals_against }}</div>
                             </div>
                             <div class="text-center bg-slate-800/50 rounded-lg py-2">
@@ -237,6 +291,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if(in_array($sportSlug, ['basquetbol', 'beisbol']))
+                            <div class="text-center bg-slate-800/50 rounded-lg py-2 mb-4">
+                                <div class="text-xs text-slate-500 mb-1">Porcentaje de Victorias</div>
+                                @php
+                                    $winPct = $standing->played > 0 ? round(($standing->won / $standing->played) * 100, 1) : 0;
+                                @endphp
+                                <div class="font-bold text-cyan-400">{{ number_format($winPct, 1) }}%</div>
+                            </div>
+                        @endif
 
                         @if($standing->form)
                             <div class="flex gap-1.5 justify-center pt-3 border-t border-slate-800">
@@ -261,7 +325,7 @@
                 @endforeach
             </div>
 
-            {{-- Leyenda --}}
+            {{-- Leyenda Dinámica --}}
             <div class="mt-8 bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-800 p-6">
                 <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Leyenda</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -273,6 +337,7 @@
                         </div>
                         <span class="text-sm text-slate-300">Victoria</span>
                     </div>
+                    @if($allowsDraws)
                     <div class="flex items-center gap-3">
                         <div class="flex gap-1">
                             <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
@@ -281,6 +346,7 @@
                         </div>
                         <span class="text-sm text-slate-300">Empate</span>
                     </div>
+                    @endif
                     <div class="flex items-center gap-3">
                         <div class="flex gap-1">
                             <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
@@ -290,10 +356,20 @@
                         <span class="text-sm text-slate-300">Derrota</span>
                     </div>
                     <div class="flex items-center gap-3">
-                        <div class="text-xs text-slate-500">PJ: Partidos Jugados | GF: Goles a Favor | GC: Goles en Contra</div>
+                        <div class="text-xs text-slate-500">
+                            @if($sportSlug === 'basquetbol')
+                                PJ: Partidos Jugados | PF: Puntos a Favor | PC: Puntos en Contra
+                            @elseif($sportSlug === 'voleibol')
+                                PJ: Partidos Jugados | SG: Sets Ganados | SP: Sets Perdidos
+                            @elseif($sportSlug === 'beisbol')
+                                PJ: Partidos Jugados | CF: Carreras a Favor | CC: Carreras en Contra
+                            @else
+                                PJ: Partidos Jugados | GF: Goles a Favor | GC: Goles en Contra
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
         @endif
     </div>
-</div>
+</div> 

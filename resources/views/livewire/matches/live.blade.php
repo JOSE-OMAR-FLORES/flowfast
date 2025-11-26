@@ -4,7 +4,9 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Partido en Vivo</h1>
-                <p class="mt-1 text-sm text-gray-500">{{ $match->season->league->name }} - {{ $match->season->name }}</p>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ $sport->emoji ?? '🏆' }} {{ $match->season->league->name }} - {{ $match->season->name }}
+                </p>
             </div>
             <a href="{{ route('fixtures.index') }}" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
                 ← Volver
@@ -31,6 +33,7 @@
             <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg shadow-lg p-8 text-white">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center space-x-2">
+                        <span class="text-2xl">{{ $sport->emoji ?? '🏆' }}</span>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $match->isLive() ? 'bg-green-500' : ($match->isFinished() ? 'bg-gray-500' : 'bg-blue-500') }}">
                             {{ ucfirst($match->status) }}
                         </span>
@@ -251,26 +254,57 @@
                 @endif
             @endif
 
-            {{-- Eventos del Partido --}}
+            {{-- Eventos del Partido (Dinámico según deporte) --}}
             @if($match->isLive())
                 <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-6">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-semibold text-gray-900">Eventos del Partido</h3>
+                        <h3 class="font-semibold text-gray-900">
+                            {{ $sport->emoji ?? '🏆' }} Eventos del Partido
+                        </h3>
+                        <span class="text-xs text-gray-500">{{ $sport->name ?? 'Deporte' }}</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                        <button wire:click="openEventForm('goal', {{ $match->home_team_id }})" class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                            ⚽ Gol Local
-                        </button>
-                        <button wire:click="openEventForm('goal', {{ $match->away_team_id }})" class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                            ⚽ Gol Visitante
-                        </button>
-                        <button wire:click="openEventForm('yellow_card', {{ $match->home_team_id }})" class="px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors">
-                            🟨 Tarjeta Local
-                        </button>
-                        <button wire:click="openEventForm('yellow_card', {{ $match->away_team_id }})" class="px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors">
-                            🟨 Tarjeta Visitante
-                        </button>
+                    
+                    {{-- Eventos que afectan el marcador --}}
+                    <div class="mb-4">
+                        <p class="text-xs text-gray-500 mb-2 font-medium">Puntaje / Anotaciones</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            @foreach($scoringEvents as $eventKey => $eventConfig)
+                                <button wire:click="openEventForm('{{ $eventKey }}', {{ $match->home_team_id }})" 
+                                    class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                                    <span>{{ $eventConfig['emoji'] }}</span>
+                                    <span class="truncate">{{ $eventConfig['label'] }} Local</span>
+                                </button>
+                                <button wire:click="openEventForm('{{ $eventKey }}', {{ $match->away_team_id }})" 
+                                    class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                                    <span>{{ $eventConfig['emoji'] }}</span>
+                                    <span class="truncate">{{ $eventConfig['label'] }} Visit</span>
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
+                    
+                    {{-- Eventos que NO afectan el marcador --}}
+                    @if(count($nonScoringEvents) > 0)
+                        <div>
+                            <p class="text-xs text-gray-500 mb-2 font-medium">Otros Eventos</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach($nonScoringEvents as $eventKey => $eventConfig)
+                                    @if($eventKey !== 'substitution')
+                                        <button wire:click="openEventForm('{{ $eventKey }}', {{ $match->home_team_id }})" 
+                                            class="px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                                            <span>{{ $eventConfig['emoji'] }}</span>
+                                            <span class="truncate">{{ $eventConfig['label'] }} Local</span>
+                                        </button>
+                                        <button wire:click="openEventForm('{{ $eventKey }}', {{ $match->away_team_id }})" 
+                                            class="px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                                            <span>{{ $eventConfig['emoji'] }}</span>
+                                            <span class="truncate">{{ $eventConfig['label'] }} Visit</span>
+                                        </button>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -286,46 +320,32 @@
                         @foreach($events as $event)
                             <div class="flex items-start space-x-3 relative">
                                 <div class="w-8 h-8 rounded-full {{ $event->team_id == $match->home_team_id ? 'bg-blue-500' : 'bg-green-500' }} flex items-center justify-center text-white font-bold relative z-10">
-                                    @if($event->event_type === 'goal')
-                                        ⚽
-                                    @elseif($event->event_type === 'yellow_card')
-                                        🟨
-                                    @elseif($event->event_type === 'red_card')
-                                        🟥
-                                    @elseif($event->event_type === 'substitution')
-                                        🔄
-                                    @endif
+                                    {{ $event->emoji }}
                                 </div>
                                 <div class="flex-1">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ $event->minute }}'
-                                        @if($event->event_type === 'goal')
-                                            GOL de {{ $event->player->first_name }} {{ $event->player->last_name }}
-                                            @if($event->team_id == $match->home_team_id)
-                                                ({{ $match->homeTeam->name }})
-                                            @else
-                                                ({{ $match->awayTeam->name }})
-                                            @endif
-                                        @elseif($event->event_type === 'yellow_card')
-                                            Tarjeta Amarilla para {{ $event->player->first_name }} {{ $event->player->last_name }}
-                                            @if($event->team_id == $match->home_team_id)
-                                                ({{ $match->homeTeam->name }})
-                                            @else
-                                                ({{ $match->awayTeam->name }})
-                                            @endif
-                                        @elseif($event->event_type === 'red_card')
-                                            Tarjeta Roja para {{ $event->player->first_name }} {{ $event->player->last_name }}
-                                            @if($event->team_id == $match->home_team_id)
-                                                ({{ $match->homeTeam->name }})
-                                            @else
-                                                ({{ $match->awayTeam->name }})
-                                            @endif
+                                        @if($event->minute){{ $event->minute }}'@endif
+                                        @if($event->period) <span class="text-xs text-gray-500">({{ $periodConfig['name'] }} {{ $event->period }})</span> @endif
+                                        {{ $event->label }}
+                                        @if($event->points > 1)
+                                            <span class="text-blue-600 font-bold">+{{ $event->points }}</span>
                                         @endif
+                                        @if($event->player)
+                                            - {{ $event->player->first_name }} {{ $event->player->last_name }}
+                                        @endif
+                                        <span class="text-xs text-gray-500">
+                                            ({{ $event->team_id == $match->home_team_id ? $match->homeTeam->name : $match->awayTeam->name }})
+                                        </span>
                                     </div>
                                     @if(!empty($event->description))
                                         <div class="text-xs text-gray-500 mt-1">{{ $event->description }}</div>
                                     @endif
                                 </div>
+                                @if($match->isLive())
+                                    <button wire:click="deleteEvent({{ $event->id }})" class="text-red-400 hover:text-red-600 text-xs">
+                                        ✕
+                                    </button>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -462,31 +482,51 @@
         </div>
     </div>
 
-    {{-- Modal para registrar eventos --}}
+    {{-- Modal para registrar eventos (Dinámico según deporte) --}}
     <div x-data="{ open: @entangle('showEventForm') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div x-show="open" class="fixed inset-0 bg-black opacity-50" x-transition:enter="transition-opacity ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-50" x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-50" x-transition:leave-end="opacity-0"></div>
             <div x-show="open" class="bg-white rounded-lg w-full max-w-md mx-auto z-50 overflow-hidden shadow-xl transform transition-all" x-transition:enter="transition-transform ease-out duration-300" x-transition:enter-start="scale-95" x-transition:enter-end="scale-100" x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="scale-100" x-transition:leave-end="scale-95">
-                <div class="px-6 py-4">
-                    <h3 class="text-lg font-medium text-gray-900">
-                        @if($eventType === 'goal')
-                            Registrar Gol
-                        @elseif($eventType === 'yellow_card' || $eventType === 'red_card')
-                            Registrar Tarjeta
+                <div class="px-6 py-4 bg-gray-50 border-b">
+                    <h3 class="text-lg font-medium text-gray-900 flex items-center gap-2">
+                        @if(isset($eventTypes[$eventType]))
+                            <span>{{ $eventTypes[$eventType]['emoji'] ?? '📝' }}</span>
+                            <span>Registrar {{ $eventTypes[$eventType]['label'] ?? 'Evento' }}</span>
                         @else
-                            Registrar Evento
+                            <span>📝 Registrar Evento</span>
                         @endif
                     </h3>
                 </div>
                 <div class="px-6 py-4">
                     <div class="space-y-4">
+                        {{-- Periodo/Cuarto/Set/Inning --}}
+                        @if($periodConfig['uses_periods'] ?? false)
+                            <div>
+                                <label for="period" class="block text-sm font-medium text-gray-700">{{ $periodConfig['name'] ?? 'Periodo' }}</label>
+                                <select wire:model="period" id="period" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                                    @for($i = 1; $i <= ($periodConfig['count'] ?? 4); $i++)
+                                        <option value="{{ $i }}">{{ $periodConfig['name'] ?? 'Periodo' }} {{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        @endif
+
+                        {{-- Minuto (opcional para deportes sin tiempo corrido) --}}
                         <div>
-                            <label for="minute" class="block text-sm font-medium text-gray-700">Minuto</label>
+                            <label for="minute" class="block text-sm font-medium text-gray-700">
+                                @if(in_array($sport->slug ?? '', ['basquetbol', 'voleibol']))
+                                    Tiempo (opcional)
+                                @else
+                                    Minuto
+                                @endif
+                            </label>
                             <input type="number" wire:model="minute" id="minute" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Ej. 35">
                             @error('minute') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
+
+                        {{-- Jugador --}}
                         <div>
-                            <label for="player_id" class="block text-sm font-medium text-gray-700">Jugador</label>
+                            <label for="player_id" class="block text-sm font-medium text-gray-700">Jugador (opcional)</label>
                             <select wire:model="playerId" id="player_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                                 <option value="">Selecciona un jugador</option>
                                 @if($teamId == $match->home_team_id)
@@ -511,15 +551,19 @@
                             </select>
                             @error('playerId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
-                        @if($eventType === 'yellow_card' || $eventType === 'red_card')
+
+                        {{-- Puntos (solo para básquet) --}}
+                        @if(in_array($eventType, ['point_1', 'point_2', 'point_3']))
                             <div>
-                                <label for="card_type" class="block text-sm font-medium text-gray-700">Tipo de Tarjeta</label>
-                                <select wire:model="eventType" id="card_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                                    <option value="yellow_card">Amarilla</option>
-                                    <option value="red_card">Roja</option>
-                                </select>
+                                <label class="block text-sm font-medium text-gray-700">Puntos</label>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <span class="text-2xl font-bold text-blue-600">+{{ $eventTypes[$eventType]['points'] ?? $points }}</span>
+                                    <span class="text-gray-500">puntos</span>
+                                </div>
                             </div>
                         @endif
+
+                        {{-- Notas --}}
                         <div>
                             <label for="notes" class="block text-sm font-medium text-gray-700">Notas (opcional)</label>
                             <textarea wire:model="description" id="notes" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Detalles adicionales..."></textarea>

@@ -5,19 +5,51 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900">💰 Gestión de Ingresos</h2>
-                <p class="text-sm text-gray-600 mt-1">Control de cuotas, inscripciones y pagos recibidos</p>
+                <p class="text-sm text-gray-600 mt-1">
+                    @if($currentLeague)
+                        {{ $currentLeague->sport->emoji ?? '⚽' }} {{ $currentLeague->name }}
+                    @else
+                        Control de cuotas, inscripciones y pagos recibidos
+                    @endif
+                </p>
             </div>
             
-            @if(auth()->user()->user_type === 'admin' || auth()->user()->user_type === 'league_manager')
-                <a href="{{ route('financial.income.create') }}" 
-                   class="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Registrar Ingreso
-                </a>
-            @endif
+            <div class="flex items-center gap-3">
+                {{-- Selector de Liga prominente --}}
+                @if($leagues->count() > 1)
+                    <select wire:model.live="leagueFilter" 
+                            class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white font-medium">
+                        <option value="">📋 Todas las ligas</option>
+                        @foreach($leagues as $league)
+                            <option value="{{ $league->id }}">{{ $league->sport->emoji ?? '⚽' }} {{ $league->name }}</option>
+                        @endforeach
+                    </select>
+                @endif
+                
+                @if(auth()->user()->user_type === 'admin' || auth()->user()->user_type === 'league_manager')
+                    <a href="{{ route('financial.income.create', ['leagueId' => $leagueFilter ?: null]) }}" 
+                       class="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Registrar Ingreso
+                    </a>
+                @endif
+            </div>
         </div>
+
+        {{-- Breadcrumb si hay liga seleccionada --}}
+        @if($currentLeague)
+            <nav class="mb-4 text-sm">
+                <ol class="flex items-center gap-2 text-gray-500">
+                    <li><a href="{{ route('leagues.index') }}" class="hover:text-green-600">Ligas</a></li>
+                    <li>/</li>
+                    <li><a href="{{ route('financial.dashboard', $currentLeague->id) }}" class="hover:text-green-600">{{ $currentLeague->name }}</a></li>
+                    <li>/</li>
+                    <li class="text-gray-900 font-medium">Ingresos</li>
+                </ol>
+            </nav>
+        @endif
 
         {{-- Info Box --}}
         <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
@@ -56,7 +88,7 @@
 
         {{-- Filtros --}}
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {{-- Búsqueda --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
@@ -66,18 +98,6 @@
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                 </div>
 
-                {{-- Filtro Liga --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Liga</label>
-                    <select wire:model.live="leagueFilter" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        <option value="">Todas</option>
-                        @foreach($leagues as $league)
-                            <option value="{{ $league->id }}">{{ $league->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 {{-- Filtro Temporada --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Temporada</label>
@@ -85,7 +105,7 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <option value="">Todas</option>
                         @foreach($seasons as $season)
-                            <option value="{{ $season->id }}">{{ $season->name }}</option>
+                            <option value="{{ $season->id }}">{{ $season->name }} ({{ $season->league->name ?? '' }})</option>
                         @endforeach
                     </select>
                 </div>

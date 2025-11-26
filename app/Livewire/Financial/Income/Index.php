@@ -21,6 +21,11 @@ class Index extends Component
     public $statusFilter = '';
     public $showConfirmModal = false;
     public $selectedIncome = null;
+    
+    // Liga específica (desde URL o sesión)
+    public $leagueId = null;
+    public $currentLeague = null;
+    public $userLeagues = [];
 
     protected $listeners = [
         'payment-confirmed' => 'refreshIncomes',
@@ -28,6 +33,32 @@ class Index extends Component
     ];
 
     protected $queryString = ['search', 'leagueFilter', 'seasonFilter', 'typeFilter', 'statusFilter'];
+
+    public function mount($leagueId = null)
+    {
+        $user = Auth::user();
+        
+        // Cargar ligas del usuario
+        if ($user->user_type === 'admin') {
+            $this->userLeagues = League::where('admin_id', $user->userable_id)->get();
+        } elseif ($user->user_type === 'league_manager') {
+            $this->userLeagues = League::where('manager_id', $user->userable_id)->get();
+        } else {
+            $this->userLeagues = collect();
+        }
+        
+        // Si viene leagueId desde URL, usarlo
+        if ($leagueId) {
+            $this->leagueId = $leagueId;
+            $this->leagueFilter = $leagueId;
+            $this->currentLeague = League::find($leagueId);
+        } elseif ($this->userLeagues->count() === 1) {
+            // Si solo tiene una liga, seleccionarla automáticamente
+            $this->leagueId = $this->userLeagues->first()->id;
+            $this->leagueFilter = $this->leagueId;
+            $this->currentLeague = $this->userLeagues->first();
+        }
+    }
 
     public function refreshIncomes()
     {
@@ -44,6 +75,18 @@ class Index extends Component
     public function updatingLeagueFilter()
     {
         $this->resetPage();
+    }
+
+    public function updatedLeagueFilter($value)
+    {
+        // Actualizar currentLeague cuando cambia el filtro
+        if ($value) {
+            $this->currentLeague = League::find($value);
+            $this->leagueId = $value;
+        } else {
+            $this->currentLeague = null;
+            $this->leagueId = null;
+        }
     }
 
     public function updatingSeasonFilter()
@@ -162,10 +205,15 @@ class Index extends Component
         $incomesQuery = Income::with(['league', 'season', 'team', 'match'])
             ->orderBy('created_at', 'desc');
 
-        // Filtro por rol
-        if ($user->user_type === 'league_manager') {
+        // Filtro por rol y ligas del usuario
+        if ($user->user_type === 'admin') {
+            // Admin solo ve ingresos de sus ligas
             $incomesQuery->whereHas('league', function ($query) use ($user) {
-                $query->where('league_manager_id', $user->userable_id);
+                $query->where('admin_id', $user->userable_id);
+            });
+        } elseif ($user->user_type === 'league_manager') {
+            $incomesQuery->whereHas('league', function ($query) use ($user) {
+                $query->where('manager_id', $user->userable_id);
             });
         } elseif ($user->user_type === 'coach') {
             $incomesQuery->whereHas('team', function ($query) use ($user) {
@@ -202,14 +250,18 @@ class Index extends Component
 
         $incomes = $incomesQuery->paginate(15);
 
-        // Obtener datos para filtros
-        $leagues = League::all();
-        $seasons = Season::all();
+        // Obtener datos para filtros (solo ligas del usuario)
+        $leagues = $this->userLeagues;
+        
+        // Temporadas de las ligas del usuario
+        $leagueIds = $leagues->pluck('id');
+        $seasons = Season::whereIn('league_id', $leagueIds)->get();
 
         return view('livewire.financial.income.index', [
             'incomes' => $incomes,
             'leagues' => $leagues,
             'seasons' => $seasons,
+            'currentLeague' => $this->currentLeague,
         ])->layout('layouts.app');
     }
 }

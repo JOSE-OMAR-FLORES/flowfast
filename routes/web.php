@@ -144,13 +144,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,league_manager'])->prefix('admin/financial')->name('financial.')->group(function () {
         Route::get('/dashboard/{leagueId}', FinancialDashboard::class)->name('dashboard');
         
-        // Income Routes
-        Route::get('/income', \App\Livewire\Financial\Income\Index::class)->name('income.index');
-        Route::get('/income/create', \App\Livewire\Financial\Income\Create::class)->name('income.create');
+        // Income Routes - con filtro opcional por liga
+        Route::get('/income/{leagueId?}', \App\Livewire\Financial\Income\Index::class)->name('income.index');
+        Route::get('/income/create/{leagueId?}', \App\Livewire\Financial\Income\Create::class)->name('income.create');
         
-        // Expense Routes
-        Route::get('/expense', \App\Livewire\Financial\Expense\Index::class)->name('expense.index');
-        Route::get('/expense/create', \App\Livewire\Financial\Expense\Create::class)->name('expense.create');
+        // Expense Routes - con filtro opcional por liga
+        Route::get('/expense/{leagueId?}', \App\Livewire\Financial\Expense\Index::class)->name('expense.index');
+        Route::get('/expense/create/{leagueId?}', \App\Livewire\Financial\Expense\Create::class)->name('expense.create');
     });
     
     // Payment Routes (All authenticated users can view their team payments)

@@ -8,7 +8,7 @@
         
         <div class="flex gap-3">
             {{-- Botones de Acceso Rápido --}}
-            <a href="{{ route('financial.income.index') }}" 
+            <a href="{{ route('financial.income.index', ['leagueId' => $league->id]) }}" 
                class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -16,7 +16,7 @@
                 Ingresos
             </a>
             
-            <a href="{{ route('financial.expense.index') }}" 
+            <a href="{{ route('financial.expense.index', ['leagueId' => $league->id]) }}" 
                class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>

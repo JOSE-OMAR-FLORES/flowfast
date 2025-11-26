@@ -50,19 +50,30 @@ class Create extends Component
         'notes' => 'nullable|string|max:1000',
     ];
 
-    public function mount()
+    public function mount($leagueId = null)
     {
         $user = Auth::user();
         
         // Cargar ligas según el rol
         if ($user->user_type === 'league_manager') {
             $this->leagues = League::where('league_manager_id', $user->userable_id)->get();
+        } elseif ($user->user_type === 'admin') {
+            $this->leagues = League::where('admin_id', $user->userable_id)->get();
         } else {
             $this->leagues = League::all();
         }
 
+        // Si se pasa un leagueId específico, usarlo
+        if ($leagueId) {
+            // Verificar que la liga pertenezca al usuario
+            $league = $this->leagues->firstWhere('id', $leagueId);
+            if ($league) {
+                $this->league_id = $leagueId;
+                $this->updatedLeagueId();
+            }
+        }
         // Si solo hay una liga, seleccionarla automáticamente
-        if ($this->leagues->count() === 1) {
+        elseif ($this->leagues->count() === 1) {
             $this->league_id = $this->leagues->first()->id;
             $this->updatedLeagueId();
         }
@@ -166,7 +177,7 @@ class Create extends Component
             $income = \App\Models\Income::create($data);
 
             session()->flash('success', 'Ingreso registrado exitosamente.');
-            return redirect()->route('financial.income.index');
+            return redirect()->route('financial.income.index', ['leagueId' => $this->league_id]);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Error al registrar el ingreso: ' . $e->getMessage());
