@@ -101,16 +101,21 @@ class Create extends Component
             $homeTeam = Team::findOrFail($this->home_team_id);
             $awayTeam = Team::findOrFail($this->away_team_id);
 
+            // Obtener el venue name si se seleccionó uno
+            $venueName = null;
+            if ($this->venue_id) {
+                $venue = Venue::find($this->venue_id);
+                $venueName = $venue ? $venue->name : null;
+            }
+
             // Crear el partido amistoso
             $match = GameMatch::create([
                 'home_team_id' => $this->home_team_id,
                 'away_team_id' => $this->away_team_id,
-                'league_id' => $homeTeam->season->league_id,
                 'season_id' => $homeTeam->season_id,
-                'venue_id' => $this->venue_id,
-                'referee_id' => $this->referee_id,
-                'match_date' => $this->match_date,
-                'match_time' => $this->match_time,
+                'venue' => $venueName,
+                'referee_id' => $this->referee_id ?: null,
+                'scheduled_at' => $this->match_date . ' ' . $this->match_time . ':00',
                 'status' => 'scheduled',
                 'is_friendly' => true,
                 'home_team_fee' => $this->home_team_fee,
@@ -162,7 +167,7 @@ class Create extends Component
                     'description' => 'Pago por arbitraje - Amistoso: ' . $homeTeam->name . ' vs ' . $awayTeam->name,
                     'due_date' => $this->match_date,
                     'payment_status' => 'pending',
-                    'generated_by' => auth()->id(),
+                    'requested_by' => auth()->id(),
                 ]);
             }
 
