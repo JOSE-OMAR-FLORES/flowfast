@@ -66,6 +66,28 @@ class User extends Authenticatable
     }
 
     /**
+     * Accessor para obtener el nombre del usuario desde la relación polimórfica
+     */
+    public function getNameAttribute(): ?string
+    {
+        if ($this->userable) {
+            // Verificar si tiene full_name (accessor en Referee, Coach, etc.)
+            if (method_exists($this->userable, 'getFullNameAttribute')) {
+                return $this->userable->full_name;
+            }
+            // O si tiene first_name y last_name
+            if (isset($this->userable->first_name)) {
+                return trim($this->userable->first_name . ' ' . ($this->userable->last_name ?? ''));
+            }
+            // O si tiene name directamente
+            if (isset($this->userable->name)) {
+                return $this->userable->name;
+            }
+        }
+        return $this->email;
+    }
+
+    /**
      * Verificar si el usuario es de un tipo específico
      */
     public function isAdmin(): bool

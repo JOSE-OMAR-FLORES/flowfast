@@ -35,7 +35,7 @@ class AuthenticatedSessionController extends Controller
         $redirectRoute = match($user->user_type) {
             'admin' => route('admin.dashboard'),
             'league_manager' => route('admin.dashboard'),
-            'referee' => route('referee.matches.index'),
+            'referee' => route('referee.dashboard'),
             'coach' => route('coach.teams.index'),
             'player' => route('player.team.index'),
             default => route('admin.dashboard'),

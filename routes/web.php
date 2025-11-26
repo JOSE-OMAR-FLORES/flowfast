@@ -49,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     
     // Referee Routes - Separate area for referees
     Route::middleware(['role:referee'])->prefix('referee')->name('referee.')->group(function () {
+        Route::get('/dashboard', \App\Livewire\Referee\Dashboard::class)->name('dashboard');
+        Route::get('/my-payments', \App\Livewire\Referee\MyPayments::class)->name('my-payments');
         Route::get('/matches', FixturesIndex::class)->name('matches.index');
         Route::get('/matches/{matchId}/live', \App\Livewire\Matches\Live::class)->name('matches.live');
     });

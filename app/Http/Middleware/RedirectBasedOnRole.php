@@ -26,7 +26,7 @@ class RedirectBasedOnRole
             
             // Si un referee intenta acceder a rutas /admin/*, redirigir a su dashboard
             if ($user->user_type === 'referee' && $request->is('admin/*')) {
-                return redirect()->route('referee.matches.index');
+                return redirect()->route('referee.dashboard');
             }
             
             // Si un player intenta acceder a rutas /admin/*, redirigir a su dashboard

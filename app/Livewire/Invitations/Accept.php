@@ -172,7 +172,7 @@ class Accept extends Component
                 'league_manager' => route('admin.dashboard'),
                 'coach' => route('coach.teams.index'),
                 'player' => route('player.team.index'),
-                'referee' => route('referee.matches.index'),
+                'referee' => route('referee.dashboard'),
                 default => route('admin.dashboard'),
             };
             
