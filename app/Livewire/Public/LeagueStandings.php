@@ -29,7 +29,7 @@ class LeagueStandings extends Component
         $standings = collect();
         
         if ($this->activeSeason) {
-            $standings = Standing::with(['team.club'])
+            $standings = Standing::with(['team'])
                 ->where('season_id', $this->activeSeason->id)
                 ->orderBy('points', 'desc')
                 ->orderBy('goal_difference', 'desc')

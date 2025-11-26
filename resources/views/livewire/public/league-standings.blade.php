@@ -1,32 +1,66 @@
-<div>
+<div class="min-h-screen bg-slate-950">
+    <style>
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Grid pattern */
+    .bg-grid-white\/\[0\.02\] {
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+    </style>
+
     {{-- Header de la Liga --}}
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-8">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="text-4xl">{{ $league->sport->emoji ?? '⚽' }}</span>
-                <h1 class="text-3xl font-bold">{{ $league->name }}</h1>
+    <div class="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white py-12 overflow-hidden">
+        {{-- Decorative elements --}}
+        <div class="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        
+        <div class="relative container mx-auto px-4">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center text-4xl backdrop-blur-sm border border-cyan-500/20">
+                    {{ $league->sport->emoji ?? '⚽' }}
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold">{{ $league->name }}</h1>
+                    @if($activeSeason)
+                        <p class="text-cyan-300 mt-1 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            {{ $activeSeason->name }}
+                        </p>
+                    @endif
+                </div>
             </div>
-            @if($activeSeason)
-                <p class="text-blue-100">{{ $activeSeason->name }}</p>
-            @endif
         </div>
     </div>
 
     {{-- Navegación --}}
-    <div class="bg-white border-b sticky top-0 z-10 shadow-sm">
+    <div class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10 shadow-lg">
         <div class="container mx-auto px-4">
-            <nav class="flex gap-8 overflow-x-auto">
-                <a href="{{ url('/league/' . $league->slug) }}" class="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap">
-                    Inicio
+            <nav class="flex gap-1 overflow-x-auto scrollbar-hide">
+                <a href="{{ url('/league/' . $league->slug) }}" 
+                   class="py-4 px-6 text-slate-300 hover:text-white hover:bg-slate-800 rounded-t-lg transition-all whitespace-nowrap">
+                    🏠 Inicio
                 </a>
-                <a href="{{ url('/league/' . $league->slug . '/fixtures') }}" class="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap">
-                    Calendario
+                <a href="{{ url('/league/' . $league->slug . '/fixtures') }}" 
+                   class="py-4 px-6 text-slate-300 hover:text-white hover:bg-slate-800 rounded-t-lg transition-all whitespace-nowrap">
+                    📅 Calendario
                 </a>
-                <a href="{{ url('/league/' . $league->slug . '/standings') }}" class="py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-semibold whitespace-nowrap">
-                    Posiciones
+                <a href="{{ url('/league/' . $league->slug . '/standings') }}" 
+                   class="py-4 px-6 bg-slate-800 text-cyan-400 border-b-2 border-cyan-400 font-semibold rounded-t-lg whitespace-nowrap">
+                    📊 Posiciones
                 </a>
-                <a href="{{ url('/league/' . $league->slug . '/teams') }}" class="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap">
-                    Equipos
+                <a href="{{ url('/league/' . $league->slug . '/teams') }}" 
+                   class="py-4 px-6 text-slate-300 hover:text-white hover:bg-slate-800 rounded-t-lg transition-all whitespace-nowrap">
+                    👥 Equipos
                 </a>
             </nav>
         </div>
@@ -35,143 +69,230 @@
     {{-- Contenido --}}
     <div class="container mx-auto px-4 py-8">
         @if($standings->isEmpty())
-            <div class="bg-white rounded-lg shadow p-12 text-center">
-                <div class="text-gray-400 mb-4">
-                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- Estado Vacío --}}
+            <div class="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-800 p-16 text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                 </div>
-                <p class="text-gray-600 text-lg">No hay tabla de posiciones aún</p>
+                <h3 class="text-xl font-semibold text-white mb-2">No hay tabla de posiciones</h3>
+                <p class="text-slate-400">La clasificación aparecerá cuando comiencen los partidos</p>
             </div>
         @else
             {{-- Tabla Desktop --}}
-            <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">PJ</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">G</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">E</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">P</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">GF</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">GC</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Dif</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Pts</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Forma</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($standings as $index => $standing)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-gray-900">{{ $index + 1 }}</span>
-                                        @if($index === 0)
-                                            <span class="text-yellow-400">🥇</span>
-                                        @elseif($index === 1)
-                                            <span class="text-gray-400">🥈</span>
-                                        @elseif($index === 2)
-                                            <span class="text-orange-400">🥉</span>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="font-medium text-gray-900">
-                                        {{ $standing->team->name }}
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        {{ $standing->team->club->name ?? '' }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->played }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->won }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->drawn }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->lost }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->goals_for }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{{ $standing->goals_against }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                    <span class="font-semibold {{ $standing->goal_difference >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ $standing->goal_difference > 0 ? '+' : '' }}{{ $standing->goal_difference }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                    <span class="font-bold text-blue-600">{{ $standing->points }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if($standing->form)
-                                        <div class="flex gap-1 justify-center">
-                                            @foreach(str_split(substr($standing->form, -5)) as $result)
-                                                @if($result === 'W')
-                                                    <span class="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">V</span>
-                                                @elseif($result === 'D')
-                                                    <span class="w-6 h-6 rounded-full bg-gray-400 text-white text-xs flex items-center justify-center font-bold">E</span>
-                                                @elseif($result === 'L')
-                                                    <span class="w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">D</span>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </td>
+            <div class="hidden md:block bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-slate-800/50 border-b border-slate-700">
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Pos</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Equipo</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">PJ</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">G</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">E</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">P</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">GF</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">GC</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Dif</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Pts</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Forma</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            @foreach($standings as $index => $standing)
+                                <tr class="hover:bg-slate-800/30 transition-colors group {{ $index < 3 ? 'bg-slate-800/20' : '' }}">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            <span class="font-bold text-lg {{ $index < 3 ? 'text-cyan-400' : 'text-slate-300' }}">
+                                                {{ $index + 1 }}
+                                            </span>
+                                            @if($index === 0)
+                                                <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-500/25">
+                                                    <span class="text-lg">🥇</span>
+                                                </div>
+                                            @elseif($index === 1)
+                                                <div class="w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-500 rounded-lg flex items-center justify-center shadow-lg shadow-gray-500/25">
+                                                    <span class="text-lg">🥈</span>
+                                                </div>
+                                            @elseif($index === 2)
+                                                <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/25">
+                                                    <span class="text-lg">🥉</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-slate-300 border border-slate-600 group-hover:border-cyan-500/50 transition-colors">
+                                                {{ strtoupper(substr($standing->team->name, 0, 3)) }}
+                                            </div>
+                                            <div>
+                                                <div class="font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                                                    {{ $standing->team->name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->played }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->won }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->drawn }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->lost }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->goals_for }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-300">{{ $standing->goals_against }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg font-bold {{ $standing->goal_difference > 0 ? 'bg-green-500/20 text-green-400' : ($standing->goal_difference < 0 ? 'bg-red-500/20 text-red-400' : 'bg-slate-700 text-slate-400') }}">
+                                            {{ $standing->goal_difference > 0 ? '+' : '' }}{{ $standing->goal_difference }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 font-bold text-lg text-cyan-400 shadow-lg shadow-cyan-500/10">
+                                            {{ $standing->points }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($standing->form)
+                                            <div class="flex gap-1 justify-center">
+                                                @foreach(str_split(substr($standing->form, -5)) as $result)
+                                                    @if($result === 'W')
+                                                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+                                                            <span class="text-white text-xs font-bold">V</span>
+                                                        </div>
+                                                    @elseif($result === 'D')
+                                                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
+                                                            <span class="text-white text-xs font-bold">E</span>
+                                                        </div>
+                                                    @elseif($result === 'L')
+                                                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+                                                            <span class="text-white text-xs font-bold">D</span>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="text-center text-slate-600 text-xs">-</div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {{-- Cards Mobile --}}
             <div class="md:hidden space-y-4">
                 @foreach($standings as $index => $standing)
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl font-bold text-gray-400">{{ $index + 1 }}</span>
+                    <div class="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-800 p-5 hover:border-cyan-500/50 transition-all {{ $index < 3 ? 'border-cyan-500/30' : '' }}">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl font-bold {{ $index < 3 ? 'text-cyan-400' : 'text-slate-400' }}">
+                                    {{ $index + 1 }}
+                                </span>
                                 @if($index === 0)
-                                    <span class="text-2xl">🥇</span>
+                                    <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <span class="text-xl">🥇</span>
+                                    </div>
                                 @elseif($index === 1)
-                                    <span class="text-2xl">🥈</span>
+                                    <div class="w-10 h-10 bg-gradient-to-br from-gray-300 to-gray-500 rounded-lg flex items-center justify-center shadow-lg">
+                                        <span class="text-xl">🥈</span>
+                                    </div>
                                 @elseif($index === 2)
-                                    <span class="text-2xl">🥉</span>
+                                    <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <span class="text-xl">🥉</span>
+                                    </div>
                                 @endif
                             </div>
-                            <span class="text-2xl font-bold text-blue-600">{{ $standing->points }} pts</span>
+                            <div class="flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30">
+                                <span class="text-2xl font-bold text-cyan-400">{{ $standing->points }}</span>
+                            </div>
                         </div>
-                        <div class="font-semibold text-lg mb-1">{{ $standing->team->name }}</div>
-                        <div class="text-sm text-gray-500 mb-3">{{ $standing->team->club->name ?? '' }}</div>
                         
-                        <div class="grid grid-cols-3 gap-2 text-sm">
-                            <div class="text-center">
-                                <div class="text-gray-500">PJ</div>
-                                <div class="font-semibold">{{ $standing->played }}</div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-slate-300 border border-slate-600">
+                                {{ strtoupper(substr($standing->team->name, 0, 3)) }}
                             </div>
-                            <div class="text-center">
-                                <div class="text-gray-500">G-E-P</div>
-                                <div class="font-semibold">{{ $standing->won }}-{{ $standing->drawn }}-{{ $standing->lost }}</div>
+                            <div>
+                                <div class="font-semibold text-lg text-white">{{ $standing->team->name }}</div>
                             </div>
-                            <div class="text-center">
-                                <div class="text-gray-500">Dif</div>
-                                <div class="font-semibold {{ $standing->goal_difference >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                        </div>
+                        
+                        <div class="grid grid-cols-4 gap-3 mb-4">
+                            <div class="text-center bg-slate-800/50 rounded-lg py-2">
+                                <div class="text-xs text-slate-500 mb-1">PJ</div>
+                                <div class="font-bold text-white">{{ $standing->played }}</div>
+                            </div>
+                            <div class="text-center bg-slate-800/50 rounded-lg py-2">
+                                <div class="text-xs text-slate-500 mb-1">G-E-P</div>
+                                <div class="font-bold text-white text-sm">{{ $standing->won }}-{{ $standing->drawn }}-{{ $standing->lost }}</div>
+                            </div>
+                            <div class="text-center bg-slate-800/50 rounded-lg py-2">
+                                <div class="text-xs text-slate-500 mb-1">Goles</div>
+                                <div class="font-bold text-white text-sm">{{ $standing->goals_for }}-{{ $standing->goals_against }}</div>
+                            </div>
+                            <div class="text-center bg-slate-800/50 rounded-lg py-2">
+                                <div class="text-xs text-slate-500 mb-1">Dif</div>
+                                <div class="font-bold {{ $standing->goal_difference > 0 ? 'text-green-400' : ($standing->goal_difference < 0 ? 'text-red-400' : 'text-slate-400') }}">
                                     {{ $standing->goal_difference > 0 ? '+' : '' }}{{ $standing->goal_difference }}
                                 </div>
                             </div>
                         </div>
 
                         @if($standing->form)
-                            <div class="mt-3 flex gap-1 justify-center">
+                            <div class="flex gap-1.5 justify-center pt-3 border-t border-slate-800">
                                 @foreach(str_split(substr($standing->form, -5)) as $result)
                                     @if($result === 'W')
-                                        <span class="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">V</span>
+                                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+                                            <span class="text-white text-xs font-bold">V</span>
+                                        </div>
                                     @elseif($result === 'D')
-                                        <span class="w-6 h-6 rounded-full bg-gray-400 text-white text-xs flex items-center justify-center font-bold">E</span>
+                                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
+                                            <span class="text-white text-xs font-bold">E</span>
+                                        </div>
                                     @elseif($result === 'L')
-                                        <span class="w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">D</span>
+                                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+                                            <span class="text-white text-xs font-bold">D</span>
+                                        </div>
                                     @endif
                                 @endforeach
                             </div>
                         @endif
                     </div>
                 @endforeach
+            </div>
+
+            {{-- Leyenda --}}
+            <div class="mt-8 bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-800 p-6">
+                <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Leyenda</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1">
+                            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+                                <span class="text-white text-xs font-bold">V</span>
+                            </div>
+                        </div>
+                        <span class="text-sm text-slate-300">Victoria</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1">
+                            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
+                                <span class="text-white text-xs font-bold">E</span>
+                            </div>
+                        </div>
+                        <span class="text-sm text-slate-300">Empate</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1">
+                            <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+                                <span class="text-white text-xs font-bold">D</span>
+                            </div>
+                        </div>
+                        <span class="text-sm text-slate-300">Derrota</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-xs text-slate-500">PJ: Partidos Jugados | GF: Goles a Favor | GC: Goles en Contra</div>
+                    </div>
+                </div>
             </div>
         @endif
     </div>
