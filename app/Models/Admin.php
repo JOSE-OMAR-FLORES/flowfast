@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Admin extends Model
 {
@@ -63,5 +64,17 @@ class Admin extends Model
     public function getFullNameAttribute(): string
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    /**
+     * Obtener URL del brand logo
+     */
+    public function getBrandLogoUrlAttribute(): ?string
+    {
+        if ($this->brand_logo) {
+            $disk = config('filesystems.default', 'public');
+            return Storage::disk($disk)->url($this->brand_logo);
+        }
+        return null;
     }
 }

@@ -168,7 +168,8 @@ class User extends Authenticatable
     public function getProfilePhotoUrlAttribute(): ?string
     {
         if ($this->profile_photo) {
-            return Storage::url($this->profile_photo);
+            $disk = config('filesystems.default', 'public');
+            return Storage::disk($disk)->url($this->profile_photo);
         }
         return null;
     }

@@ -58,7 +58,7 @@
         <!-- Logo/Header -->
         <div class="sidebar-header">
             @php
-                $brandLogo = null;
+                $brandLogoUrl = null;
                 $brandName = 'FlowFast SaaS';
                 $user = auth()->user();
                 
@@ -68,7 +68,7 @@
                     
                     if ($associatedAdmin) {
                         if ($associatedAdmin->brand_logo) {
-                            $brandLogo = $associatedAdmin->brand_logo;
+                            $brandLogoUrl = $associatedAdmin->brand_logo_url;
                         }
                         if ($associatedAdmin->company_name) {
                             $brandName = $associatedAdmin->company_name;
@@ -77,8 +77,8 @@
                 }
             @endphp
             
-            @if($brandLogo)
-                <img src="{{ Storage::url($brandLogo) }}" alt="logo" class="brand-logo-img" style="width: 42px; height: 42px; object-fit: cover; border-radius: 8px;" />
+            @if($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="logo" class="brand-logo-img" style="width: 42px; height: 42px; object-fit: cover; border-radius: 8px;" />
             @else
                 <img src="https://ui-avatars.com/api/?name=FS&background=667eea&color=fff&size=42" alt="logo" />
             @endif

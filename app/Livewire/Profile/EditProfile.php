@@ -13,6 +13,12 @@ class EditProfile extends Component
 {
     use WithFileUploads;
 
+    // Storage disk - uses config('filesystems.default') which can be 'public' or 's3'
+    protected function getStorageDisk(): string
+    {
+        return config('filesystems.default', 'public');
+    }
+
     // User data
     public $email;
     
@@ -184,9 +190,9 @@ class EditProfile extends Component
         if ($this->profile_photo) {
             // Delete old photo
             if ($this->currentProfilePhoto) {
-                Storage::disk('public')->delete($this->currentProfilePhoto);
+                Storage::disk($this->getStorageDisk())->delete($this->currentProfilePhoto);
             }
-            $path = $this->profile_photo->store('profile-photos', 'public');
+            $path = $this->profile_photo->store('profile-photos', $this->getStorageDisk());
             $user->profile_photo = $path;
             $this->currentProfilePhoto = $path;
         }
@@ -207,9 +213,9 @@ class EditProfile extends Component
                     if ($this->brand_logo) {
                         // Delete old logo
                         if ($this->currentBrandLogo) {
-                            Storage::disk('public')->delete($this->currentBrandLogo);
+                            Storage::disk($this->getStorageDisk())->delete($this->currentBrandLogo);
                         }
-                        $path = $this->brand_logo->store('brand-logos', 'public');
+                        $path = $this->brand_logo->store('brand-logos', $this->getStorageDisk());
                         $profile->brand_logo = $path;
                         $this->currentBrandLogo = $path;
                     }
@@ -233,9 +239,9 @@ class EditProfile extends Component
                     if ($this->photo) {
                         // Delete old photo
                         if ($this->currentPhoto) {
-                            Storage::disk('public')->delete($this->currentPhoto);
+                            Storage::disk($this->getStorageDisk())->delete($this->currentPhoto);
                         }
-                        $path = $this->photo->store('player-photos', 'public');
+                        $path = $this->photo->store('player-photos', $this->getStorageDisk());
                         $profile->photo = $path;
                         $this->currentPhoto = $path;
                     }
@@ -288,10 +294,10 @@ class EditProfile extends Component
         
         // Delete profile photo/logo if exists
         if ($user->user_type === 'player' && $this->currentPhoto) {
-            Storage::disk('public')->delete($this->currentPhoto);
+            Storage::disk($this->getStorageDisk())->delete($this->currentPhoto);
         }
         if ($user->user_type === 'admin' && $this->currentBrandLogo) {
-            Storage::disk('public')->delete($this->currentBrandLogo);
+            Storage::disk($this->getStorageDisk())->delete($this->currentBrandLogo);
         }
         
         // Delete userable profile first
@@ -315,7 +321,7 @@ class EditProfile extends Component
         $profile = $user->userable;
         
         if ($user->user_type === 'player' && $this->currentPhoto) {
-            Storage::disk('public')->delete($this->currentPhoto);
+            Storage::disk($this->getStorageDisk())->delete($this->currentPhoto);
             $profile->photo = null;
             $profile->save();
             $this->currentPhoto = null;
@@ -328,7 +334,7 @@ class EditProfile extends Component
         $user = Auth::user();
         
         if ($this->currentProfilePhoto) {
-            Storage::disk('public')->delete($this->currentProfilePhoto);
+            Storage::disk($this->getStorageDisk())->delete($this->currentProfilePhoto);
             $user->profile_photo = null;
             $user->save();
             $this->currentProfilePhoto = null;
@@ -342,7 +348,7 @@ class EditProfile extends Component
         $profile = $user->userable;
         
         if ($user->user_type === 'admin' && $this->currentBrandLogo) {
-            Storage::disk('public')->delete($this->currentBrandLogo);
+            Storage::disk($this->getStorageDisk())->delete($this->currentBrandLogo);
             $profile->brand_logo = null;
             $profile->save();
             $this->currentBrandLogo = null;
