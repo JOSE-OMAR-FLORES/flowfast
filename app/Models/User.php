@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'user_type',
         'userable_id',
         'userable_type',
+        'profile_photo',
     ];
 
     /**
@@ -121,5 +123,68 @@ class User extends Authenticatable
     public function invitationTokens()
     {
         return $this->hasMany(\App\Models\InvitationToken::class, 'issued_by_user_id');
+    }
+
+    /**
+     * Obtener el Admin asociado a este usuario
+     * Para admin: devuelve su propio userable
+     * Para otros: busca el admin a través de las relaciones
+     */
+    public function getAssociatedAdmin(): ?Admin
+    {
+        if ($this->user_type === 'admin') {
+            return $this->userable;
+        }
+        
+        // Para league_manager, coach, referee - buscar el admin
+        if ($this->userable) {
+            // LeagueManager tiene relación directa con admin
+            if ($this->user_type === 'league_manager' && method_exists($this->userable, 'admin')) {
+                return $this->userable->admin;
+            }
+            
+            // Coach tiene team -> league -> admin
+            if ($this->user_type === 'coach' && $this->userable->team?->league?->admin) {
+                return $this->userable->team->league->admin;
+            }
+            
+            // Referee tiene league -> admin
+            if ($this->user_type === 'referee' && $this->userable->league?->admin) {
+                return $this->userable->league->admin;
+            }
+            
+            // Player tiene team -> league -> admin
+            if ($this->user_type === 'player' && $this->userable->team?->league?->admin) {
+                return $this->userable->team->league->admin;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Obtener URL de la foto de perfil
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if ($this->profile_photo) {
+            return Storage::url($this->profile_photo);
+        }
+        return null;
+    }
+
+    /**
+     * Obtener las iniciales del usuario para el avatar
+     */
+    public function getInitialsAttribute(): string
+    {
+        $name = $this->name ?? $this->email;
+        $words = explode(' ', $name);
+        
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        
+        return strtoupper(substr($name, 0, 2));
     }
 }

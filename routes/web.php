@@ -181,10 +181,8 @@ Route::middleware(['auth'])->group(function () {
         return redirect('/admin');
     })->name('dashboard.redirect');
     
-    // Profile Routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Profile Routes - Now using Livewire
+    Route::get('/profile', \App\Livewire\Profile\EditProfile::class)->name('profile.edit');
 });
 
 require __DIR__.'/auth.php';
