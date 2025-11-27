@@ -71,10 +71,16 @@ class Admin extends Model
      */
     public function getBrandLogoUrlAttribute(): ?string
     {
-        if ($this->brand_logo) {
+        if (!$this->brand_logo) {
+            return null;
+        }
+        
+        try {
             $disk = config('filesystems.default', 'public');
             return Storage::disk($disk)->url($this->brand_logo);
+        } catch (\Exception $e) {
+            // Fallback to public disk if S3 fails
+            return Storage::disk('public')->url($this->brand_logo);
         }
-        return null;
     }
 }

@@ -167,11 +167,17 @@ class User extends Authenticatable
      */
     public function getProfilePhotoUrlAttribute(): ?string
     {
-        if ($this->profile_photo) {
+        if (!$this->profile_photo) {
+            return null;
+        }
+        
+        try {
             $disk = config('filesystems.default', 'public');
             return Storage::disk($disk)->url($this->profile_photo);
+        } catch (\Exception $e) {
+            // Fallback to public disk if S3 fails
+            return Storage::disk('public')->url($this->profile_photo);
         }
-        return null;
     }
 
     /**
