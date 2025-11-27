@@ -19,6 +19,23 @@ class EditProfile extends Component
         return config('filesystems.default', 'public');
     }
 
+    /**
+     * Helper para obtener URL de archivo de manera segura
+     */
+    public function getStorageUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+        
+        try {
+            return Storage::disk($this->getStorageDisk())->url($path);
+        } catch (\Exception $e) {
+            // Fallback to public disk
+            return Storage::disk('public')->url($path);
+        }
+    }
+
     // User data
     public $email;
     

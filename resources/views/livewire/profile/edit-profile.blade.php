@@ -5,7 +5,7 @@
             <div class="flex items-center space-x-4">
                 <div class="flex-shrink-0">
                     @if($currentProfilePhoto)
-                        <img src="{{ Storage::url($currentProfilePhoto) }}" alt="Foto de perfil" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-100">
+                        <img src="{{ $this->getStorageUrl($currentProfilePhoto) }}" alt="Foto de perfil" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-100">
                     @else
                         <div class="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                             {{ strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1)) }}
@@ -116,7 +116,7 @@
                         <div class="flex items-center space-x-6">
                             @if($currentProfilePhoto)
                                 <div class="relative">
-                                    <img src="{{ Storage::url($currentProfilePhoto) }}" alt="Foto actual" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-100">
+                                    <img src="{{ $this->getStorageUrl($currentProfilePhoto) }}" alt="Foto actual" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-100">
                                     <button type="button" wire:click="removeProfilePhoto" 
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +177,7 @@
                         <div class="flex items-center space-x-6">
                             @if($currentBrandLogo)
                                 <div class="relative">
-                                    <img src="{{ Storage::url($currentBrandLogo) }}" alt="Logo actual" class="h-24 w-24 rounded-lg object-cover border border-gray-200">
+                                    <img src="{{ $this->getStorageUrl($currentBrandLogo) }}" alt="Logo actual" class="h-24 w-24 rounded-lg object-cover border border-gray-200">
                                     <button type="button" wire:click="removeBrandLogo" 
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +282,7 @@
                         <div class="flex items-center space-x-6">
                             @if($currentPhoto)
                                 <div class="relative">
-                                    <img src="{{ Storage::url($currentPhoto) }}" alt="Foto actual" class="h-24 w-24 rounded-full object-cover border-4 border-gray-200">
+                                    <img src="{{ $this->getStorageUrl($currentPhoto) }}" alt="Foto actual" class="h-24 w-24 rounded-full object-cover border-4 border-gray-200">
                                     <button type="button" wire:click="removePhoto" 
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
