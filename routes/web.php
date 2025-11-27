@@ -154,6 +154,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,league_manager'])->prefix('admin/financial')->name('financial.')->group(function () {
         Route::get('/dashboard/{leagueId}', FinancialDashboard::class)->name('dashboard');
         
+        // Reports Route
+        Route::get('/reports', \App\Livewire\Reports\FinancialReport::class)->name('reports');
+        
         // Income Routes - con filtro opcional por liga
         Route::get('/income/{leagueId?}', \App\Livewire\Financial\Income\Index::class)->name('income.index');
         Route::get('/income/create/{leagueId?}', \App\Livewire\Financial\Income\Create::class)->name('income.create');
