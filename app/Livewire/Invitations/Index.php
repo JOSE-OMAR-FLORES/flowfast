@@ -123,8 +123,11 @@ class Index extends Component
         $tokens = $query->latest()->paginate(10);
 
         // Ligas del usuario para el filtro
+        $assignedLeagues = $user->assigned_leagues ? explode(',', $user->assigned_leagues) : [];
         $leagues = League::where('admin_id', $user->userable_id ?? null)
-            ->orWhereRaw("FIND_IN_SET(id, ?)", [$user->assigned_leagues])
+            ->when(!empty($assignedLeagues), function ($q) use ($assignedLeagues) {
+                $q->orWhereIn('id', $assignedLeagues);
+            })
             ->get();
 
         return view('livewire.invitations.index', [

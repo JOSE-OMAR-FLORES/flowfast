@@ -56,8 +56,11 @@ class Create extends Component
         $user = auth()->user();
         
         // Cargar ligas del usuario
+        $assignedLeagues = $user->assigned_leagues ? explode(',', $user->assigned_leagues) : [];
         $this->leagues = League::where('admin_id', $user->userable_id ?? null)
-            ->orWhereRaw("FIND_IN_SET(id, ?)", [$user->assigned_leagues])
+            ->when(!empty($assignedLeagues), function ($q) use ($assignedLeagues) {
+                $q->orWhereIn('id', $assignedLeagues);
+            })
             ->get();
 
         if ($this->leagues->isNotEmpty()) {
