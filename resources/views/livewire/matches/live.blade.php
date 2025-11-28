@@ -483,9 +483,9 @@
     </div>
 
     {{-- Modal para registrar eventos (Dinámico según deporte) --}}
-    <div x-data="{ open: @entangle('showEventForm') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto">
+    <div x-data="{ open: @entangle('showEventForm').live }" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
-            <div x-show="open" class="fixed inset-0 bg-black opacity-50" x-transition:enter="transition-opacity ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-50" x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-50" x-transition:leave-end="opacity-0"></div>
+            <div x-show="open" class="fixed inset-0 bg-black opacity-50" @click="open = false" x-transition:enter="transition-opacity ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-50" x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-50" x-transition:leave-end="opacity-0"></div>
             <div x-show="open" class="bg-white rounded-lg w-full max-w-md mx-auto z-50 overflow-hidden shadow-xl transform transition-all" x-transition:enter="transition-transform ease-out duration-300" x-transition:enter-start="scale-95" x-transition:enter-end="scale-100" x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="scale-100" x-transition:leave-end="scale-95">
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <h3 class="text-lg font-medium text-gray-900 flex items-center gap-2">
@@ -571,11 +571,13 @@
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-2">
-                    <button wire:click="closeEventForm" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                    <button wire:click="closeEventForm" wire:loading.attr="disabled" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors disabled:opacity-50">
                         Cancelar
                     </button>
-                    <button wire:click="addEvent" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-                        Guardar
+                    <button wire:click="addEvent" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <span wire:loading wire:target="addEvent" class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                        <span wire:loading.remove wire:target="addEvent">Guardar</span>
+                        <span wire:loading wire:target="addEvent">Guardando...</span>
                     </button>
                 </div>
             </div>
@@ -583,9 +585,9 @@
     </div>
 
     {{-- Modal para asignar árbitros --}}
-    <div x-data="{ open: @entangle('showRefereeModal') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto">
+    <div x-data="{ open: @entangle('showRefereeModal').live }" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
-            <div x-show="open" class="fixed inset-0 bg-black opacity-50" x-transition:enter="transition-opacity ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-50" x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-50" x-transition:leave-end="opacity-0"></div>
+            <div x-show="open" class="fixed inset-0 bg-black opacity-50" @click="open = false" x-transition:enter="transition-opacity ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-50" x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-50" x-transition:leave-end="opacity-0"></div>
             <div x-show="open" class="bg-white rounded-lg w-full max-w-md mx-auto z-50 overflow-hidden shadow-xl transform transition-all" x-transition:enter="transition-transform ease-out duration-300" x-transition:enter-start="scale-95" x-transition:enter-end="scale-100" x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="scale-100" x-transition:leave-end="scale-95">
                 <div class="px-6 py-4">
                     <h3 class="text-lg font-medium text-gray-900">Asignar Árbitro</h3>

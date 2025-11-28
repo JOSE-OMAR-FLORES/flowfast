@@ -400,11 +400,17 @@ class Live extends Component
     public function addEvent()
     {
         if (!$this->match->isLive()) {
+            $this->closeEventForm();
             session()->flash('error', 'El partido debe estar en vivo para registrar eventos.');
             return;
         }
 
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Mantener el modal abierto para mostrar errores de validación
+            throw $e;
+        }
 
         try {
             // Obtener configuración del evento
@@ -435,10 +441,11 @@ class Live extends Component
                 $this->match->refresh();
             }
 
-            session()->flash('success', 'Evento registrado exitosamente.');
             $this->closeEventForm();
+            session()->flash('success', 'Evento registrado exitosamente.');
 
         } catch (\Exception $e) {
+            $this->closeEventForm();
             session()->flash('error', 'Error al registrar evento: ' . $e->getMessage());
         }
     }

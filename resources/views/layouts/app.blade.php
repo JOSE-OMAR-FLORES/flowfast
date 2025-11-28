@@ -20,6 +20,9 @@
     <!-- Tailwind CSS CDN (temporal) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Alpine.js x-cloak -->
+    <style>[x-cloak] { display: none !important; }</style>
+    
     <!-- Modern Sidebar Styles -->
     <link rel="stylesheet" href="/css/sidebar.css">
     
